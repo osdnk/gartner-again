@@ -1,0 +1,86 @@
+% !TEX root = main.tex
+\section{Gaussian Sum Identities and Validation}
+\label{app:analytic}
+
+\subsection{The Largest Gaussian Parity Imbalance}
+
+\begin{proof}[Proof of~\cref{lem:worst}]
+The function $\Te$ is even and $2$-periodic, and $\To(t)=\Te(t+1)$. Write $Q=e^{-\pi^2\alpha^2/2}$, so $0<Q<1$. Poisson summation for the Gaussian and the theta product identity~\cite[Equation~20.5.3]{DLMF} give the following series and product for the same function,
+\begin{align}
+ \Te(t)
+ &=\frac{\alpha\sqrt{2\pi}}2\left(1+2\sum_{m=1}^{\infty}Q^{m^2}\cos(\pi mt)\right)\label{eq:fourier}\\
+ &=\frac{\alpha\sqrt{2\pi}}2\prod_{m=1}^{\infty}(1-Q^{2m})
+ \bigl(1+2Q^{2m-1}\cos(\pi t)+Q^{4m-2}\bigr).\label{eq:product}
+\end{align}
+The Fourier coefficient of $e^{\pi i mt}$ in the periodised Gaussian is
+\[
+ \frac12\int_{\R}e^{-u^2/(2\alpha^2)}e^{-\pi imu}\,du=\frac{\alpha\sqrt{2\pi}}2Q^{m^2},
+\]
+which gives~\cref{eq:fourier}. The standard identity used in~\cref{eq:product} is
+\[
+ 1+2\sum_{m\ge1}Q^{m^2}\cos(2mz)
+ =\prod_{m\ge1}(1-Q^{2m})(1+2Q^{2m-1}\cos(2z)+Q^{4m-2}),
+\]
+with $z=\pi t/2$.
+
+Every factor in the second parentheses in~\cref{eq:product} is positive. For $0\le s<t\le1$, each such factor at $s$ is strictly larger than at $t$, because $\cos(\pi s)>\cos(\pi t)$. The products converge to positive limits since the sums of $Q^{2m}$ and $Q^{2m-1}$ converge. The ratio of the products at $s$ and $t$ is therefore strictly larger than one, already because its first factor is larger than one and all subsequent factors are larger than one. Hence $\Te$ strictly decreases on $[0,1]$.
+
+On $[0,1]$, evenness and periodicity give $\To(t)=\Te(1-t)$. Therefore $\Te(t)/\To(t)$ strictly decreases from $\Te(0)/\Te(1)$ to its reciprocal. Its value at $t=1/2$ is one. Periodicity reduces all other $t$ to this interval, possibly after exchanging the two classes. This proves the maximum and also $\Te(0)>\Te(1)$.
+
+Finally, evaluating~\cref{eq:product} at $t=0$ and $t=1$ gives
+\begin{equation}
+\label{eq:rate-product}
+ M^*(\alpha)=\prod_{m=1}^{\infty}\left(\frac{1+Q^{2m-1}}{1-Q^{2m-1}}\right)^2.
+\end{equation}
+Each factor strictly increases with $Q$, and $Q$ strictly decreases with $\alpha$. Comparing the convergent positive products, as above, proves the final claim.
+\end{proof}
+
+\subsection{Strict Improvement over the Original Functions}
+
+\begin{proof}[Proof of~\cref{prop:improvement}]
+Set $\Delta=\Te(0)-\To(0)>0$ and $p_1=e^{-1/(2\alpha^2)}$. Since $\To(0)>p_1$, we have $M^*(\alpha)=1+\Delta/\To(0)<1+\Delta/p_1$. Subtracting~\cref{eq:fourier} at $t=1$ from its value at $t=0$ gives, for $Q=e^{-\pi^2\alpha^2/2}$,
+\[
+ \Delta=2\alpha\sqrt{2\pi}\sum_{j\ge0}Q^{(2j+1)^2}
+ \le\frac{2\alpha\sqrt{2\pi}\,Q}{1-Q^4}.
+\]
+The inequality follows from $(2j+1)^2\ge1+4j$ and summing a geometric series. Substituting this bound into $1+\Delta/p_1$ gives~\cref{eq:original}.
+
+For the second claim, the original functions at input $3\vec v$ have probabilities $S/M$ and $(1-S)/M$, where
+\[
+ S=\sum_{j\ge0}(-1)^j\frac{\rho_r((3+j)\vec v)}{\rho_r(3\vec v)}.
+\]
+Thus this odd input accepts with probability $1/M$. Set $p_3=e^{-9/(2\alpha^2)}$. Summing~\cref{eq:balance} over the even points of $\Z\vec v$, and bounding the acceptance probabilities of all other odd inputs by one, gives
+\[
+ \frac{\Te(0)}M\le\To(0)-p_3+\frac{p_3}M.
+\]
+Since $0<p_3<\To(0)$ and $\Te(0)>\To(0)$, it follows that
+\[
+ M\ge\frac{\Te(0)-p_3}{\To(0)-p_3}>\frac{\Te(0)}{\To(0)}=M^*(\alpha).
+\]
+\end{proof}
+
+\subsection{Numerical Comparisons and Checks}
+
+The comparison in~\cref{tab:rates} evaluates the exact optimum of~\cref{thm:optimal} against the explicit factor of~\cref{def:original}. The latter is the sufficient factor used in~\cite{GartnerFull}, rather than a new optimisation of its original acceptance functions. A reduction in per-step rejection measures how often this step aborts, and does not directly give a signing-time speedup.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{cccc}
+\toprule
+$\alpha$ & $1-1/\Mold(\alpha)$ & $1-1/M^*(\alpha)$ & Rejection reduction\\
+\midrule
+$0.8$ & $2^{-1.88}$ & $2^{-2.67}$ & $42.2\%$\\
+$1.0$ & $2^{-4.16}$ & $2^{-5.14}$ & $49.5\%$\\
+$1.2$ & $2^{-7.17}$ & $2^{-8.25}$ & $52.8\%$\\
+$1.5$ & $2^{-12.79}$ & $2^{-14.02}$ & $57.4\%$\\
+\bottomrule
+\end{tabular}
+\caption{Per-step rejection probabilities, rounded.}
+\label{tab:rates}
+\end{table}
+
+The reduction is $1-(1-1/M^*)/(1-1/\Mold)$. We also evaluated the functions on $170$ Gaussian lines, using $\alpha\in\{0.15,0.25,0.4,0.6,0.8,1,1.2,1.5,2,4\}$ and offsets $t=i/16$ for $i=0,\ldots,16$. Across $7752$ point and repetition-factor combinations, both probabilities were nonnegative and their sum was at most one within error $2^{-270}$. The relative residual in~\cref{eq:balance} and the absolute residual in~\cref{eq:sum-budget} were below $2^{-270}$. The checks used the optimal factor for each line, the common factor $M^*(\alpha)$, and $2M^*(\alpha)$.
+
+The mathematical statements concern the infinite sums with exact real arithmetic. A finite evaluation must control the error in their ratios as well as the discarded Gaussian tails.
+The four-move acceptance identities were checked on $96$ orthogonal point and factor combinations and $20$ ring-unit instances, at width ratios $0.4$, $0.8$, $1.2$, and $2$. Relative residuals were below $2^{-300}$. Compression was checked exhaustively on $62534$ scalar residues, including all residues at the two concrete moduli, and on $64$ ring transcripts. An additional $192$ checks rejected malformed hints, challenges outside the prescribed support, and responses exceeding the verification bound.
+\FloatBarrier

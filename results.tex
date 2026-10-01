@@ -1,0 +1,119 @@
+% !TEX root = main.tex
+\section{Signature Sizes and Repetition Counts}
+\label{sec:results}
+
+We compare acceptance rules in two settings. The first uses the original rejecting parameter sets of~\cite{GartnerFull} without changing the signature relation. The second fixes three parameter sets for the folded relation and compares all three rules within that relation. The byte counts use the entropy model of~\cite[Equation~(8) and Appendix~A.2]{GartnerFull}, including challenge bytes and padding. Supporting calculations are given in~\cref{sec:comparison,app:four-comparison}.
+
+\subsection{The Original Two-Move Parameter Sets}
+
+\cref{tab:summary-two} gives the parameters and both ways to use optimal two-move acceptance. The size comparison lowers the Gaussian width while preserving the original iterative-sampler repetition factor. The attempt comparison retains the original width, so its signature-size estimate is unchanged. All comparisons use the same keys, challenge distributions, and compression parameters within each set.
+
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Parameter or estimate & I & II & III\\
+\midrule
+Ring degree $d$ & 256 & 256 & 256\\
+Modulus $q$ & 12289 & 50177 & 50177\\
+Module parameters $(\ell,m)$ & $(1,2)$ & $(3,2)$ & $(4,3)$\\
+SIS coefficient matrix & $512\times1024$ & $512\times1536$ & $768\times2048$\\
+Secret width $\sigma$ & 2.60 & 1.00 & 1.50\\
+Secret bound $B_k$ & 110.07 & 48.00 & 79.60\\
+Challenge HW bound $\kappa$ & 58 & 80 & 128\\
+Compression parameter $\tau$ & 256 & 128 & 128\\
+Original response width & 128 & 55 & 95\\
+Matched optimal width & 120.6834 & 51.7805 & 89.7892\\
+\midrule
+Original signature bytes & 775 & 1184 & 1694\\
+Optimal bytes at matched rejection & 764 & 1167 & 1674\\
+Original sampler attempts & 1.850 & 2.790 & 2.612\\
+Optimal attempts at original width & 1.341 & 1.634 & 1.574\\
+\bottomrule
+\end{tabular}
+\caption{Two-move parameters and improvements at the parameter sets of~\cite{GartnerFull}.}
+\label{tab:summary-two}
+\end{table}
+
+Sets I and II use fixed binary Hamming weights $58$ and $80$. Set III uses weights at most $128$ and the half-space selection of~\cref{def:parameters}, giving $2^{255}$ challenges. None uses full binary challenges. The detailed reproduction in~\cref{tab:parameters} matches all three original signature sizes and all nine rejecting-mode BKZ and Core-SVP estimate pairs. It retains the listed set-III verification bound $5300$ for that reproduction. Applying the displayed integer rounding bound requires $5301$, as accounted for separately in~\cref{tab:bounds}.
+
+\subsection{Four Moves at Fixed Rejection}
+
+\cref{tab:four-parameters} gives the three parameter sets for the folded relation. All use $q=50177$ and rounding step $\Delta=64$. Sets A and C use fixed Hamming weights $58$ on $256$ positions and $82$ on $512$ positions. Set B uses all $256$-bit binary challenges, with maximum weight $256$. Its mean weight $128$ is not the repetition exponent. The key distribution, folded verification relation, challenge distribution, and encoding model are fixed within each comparison. In the table, $h=\log_2|\mathcal C_4|$ is the challenge entropy, and $t$ allocates $2^{-t}$ to the challenge-search query term at $Q=2^{64}$ classical queries, as formalised in~\cref{def:query-budget}.
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Parameter & A & B & C\\
+\midrule
+Ring degree $d$ & 512 & 512 & 1024\\
+Module parameters $(\ell,m)$ & $(2,2)$ & $(3,2)$ & $(1,2)$\\
+Module matrix $\mat B$ & $2\times5$ & $2\times6$ & $2\times4$\\
+SIS coefficient matrix & $1024\times2560$ & $1024\times3072$ & $2048\times4096$\\
+NTWE proxy dimension & 1535 & 2047 & 2047\\
+Secret width $\sigma$ & 0.90 & 1.00 & 1.00\\
+Secret bound $B_k$ & 58 & 68 & 85\\
+Challenge positions $b$ & 256 & 256 & 512\\
+Weight rule & Fixed & Full binary & Fixed\\
+Maximum weight $\kappa$ & 58 & 256 & 82\\
+Challenge entropy $h$ & 193.553 & 256 & 320.578\\
+Query target exponent $t$ & 128 & 192 & 256\\
+Query contribution $Q2^{-h}$ & $2^{-129.553}$ & $2^{-192}$ & $2^{-256.578}$\\
+Challenge bytes & 32 & 32 & 41\\
+Key bytes & 2080 & 2080 & 4128\\
+\bottomrule
+\end{tabular}
+\caption{Comparison parameters with $q=50177$, $\Delta=64$, and $Q=2^{64}$.}
+\label{tab:four-parameters}
+\end{table}
+
+\cref{tab:four-sizes} compares the two-move rule of~\cite{GartnerFull}, optimal two moves, and optimal four moves. Every entry has two expected sampler attempts before norm rejection. Of the total savings of $162$, $195$, and $259$ bytes, optimal two moves account for $28$, $28$, and $42$ bytes. Adding the second direction saves the remaining $134$, $167$, and $217$ bytes.
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+& \multicolumn{3}{c}{Estimated signature bytes} & \multicolumn{2}{c}{Saved}\\
+Set & Rule of~\cite{GartnerFull} & Optimal two & Four & Bytes & Fraction\\
+\midrule
+A & 1892 & 1864 & 1730 & 162 & $8.56\%$\\
+B & 2557 & 2529 & 2362 & 195 & $7.63\%$\\
+C & 2991 & 2949 & 2732 & 259 & $8.66\%$\\
+\bottomrule
+\end{tabular}
+\caption{Signature sizes at fixed sampler rejection across three parameter sets.}
+\label{tab:four-sizes}
+\end{table}
+
+\cref{tab:four-bounds} gives every response width and norm bound used in the size comparison. The signing cutoff is $B_s=\lceil1.02r\sqrt N\rceil$, and the verification cutoff is $B_v=\lceil B_s+\sqrt{dm}(\Delta/2+1)\rceil$, where $N=d(\ell+m+1)$. The second term bounds the compression error in the worst case. All three rules use the same folded relation, so~\cref{thm:unit-security} applies under the folded self-target assumption at the corresponding verification bound.
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{llrrrr}
+\toprule
+Set & Acceptance rule & $r$ & $B_s$ & $B_v$ & $2B_v$\\
+\midrule
+A & Rule of~\cite{GartnerFull} & 66.82808338 & 3449 & 4505 & 9010\\
+  & Optimal two & 62.95106391 & 3249 & 4305 & 8610\\
+  & Four & 47.09214965 & 2431 & 3487 & 6974\\
+\midrule
+B & Rule of~\cite{GartnerFull} & 86.98084173 & 4918 & 5974 & 11948\\
+  & Optimal two & 82.69429158 & 4676 & 5732 & 11464\\
+  & Four & 61.18756830 & 3460 & 4516 & 9032\\
+\midrule
+C & Rule of~\cite{GartnerFull} & 100.55658966 & 6565 & 8059 & 16118\\
+  & Optimal two & 94.96376526 & 6200 & 7694 & 15388\\
+  & Four & 70.82704566 & 4624 & 6118 & 12236\\
+\bottomrule
+\end{tabular}
+\caption{Response widths and Euclidean norm bounds at fixed sampler rejection.}
+\label{tab:four-bounds}
+\end{table}
+
+At the original-rule widths instead, all three rules have the same estimated size. Four moves reduce expected sampler attempts from $2$ to $1.000947$, $1.000199$, and $1.000658$. The corresponding optimal two-move counts are $1.392827$, $1.375682$, and $1.388798$. These are repetition counts, not running times, since four moves require evaluating an additional direction. The complete fixed-width comparison is given in~\cref{tab:four-fixed-width}.
+
+\subsection{Challenge Capacity and Norm Accounting}
+
+The query budget in~\cref{tab:four-parameters} is an illustrative maximum of $Q=2^{64}$ classical hash queries, distinct from the modulus $q$. With challenge entropy $h=\log_2|\mathcal C_4|$, the query contribution is $Q2^{-h}$. Thus the listed target exponents allocate only the challenge-search term. They are not complete signature-security levels. The full bound includes the folded self-target and bounded-key NTWE advantages and the signing-simulation terms of~\cref{lem:fs-transfer}. The exact challenge-search bound, including an unqueried final forgery, is given in~\cref{prop:challenge-search}.
+
+The accepted Gaussian response law, rather than an average-case estimate of challenge multiplication, supplies the width used in the entropy calculation. Every signature also satisfies a hard norm test. The raw shift bound is $\norm{c'\vec s}\le\kappa B_k$, but this is not added to the Gaussian radius in the size model. The fold acts only on commitment parity. The separate Gaussian norm-tail bound is given in~\cref{lem:multi-norm-tail}. Two expected sampler attempts do not include norm or encoding rejection.
+
+The mathematical security statements use exact Gaussian sampling and exact acceptance probabilities. A finite implementation must control their total statistical error and specify its byte encoding and overflow rejection. The unstructured lattice estimates in~\cref{tab:four-lattice} do not establish the folded self-target assumption.

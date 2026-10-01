@@ -1,0 +1,109 @@
+% !TEX root = main.tex
+\subsection{Optimality}
+\label{sec:optimality}
+
+\subsubsection{The Parity Lower Bound}
+
+The accepted even mass must come entirely from odd inputs. This gives a lower bound on $M$ that applies to every admissible pair of functions, including functions unrelated to~\cref{eq:sum}.
+
+\begin{lemma}[Necessary Repetition Factor]
+\label{lem:lower}
+Every pair of admissible acceptance functions satisfies
+\[
+ M\ge\max\!\left\{\frac{E_{\vec v}(\vec y)}{O_{\vec v}(\vec y)},\frac{O_{\vec v}(\vec y)}{E_{\vec v}(\vec y)}\right\}
+ \qquad\text{for every }\vec y\in L.
+\]
+\end{lemma}
+\begin{proof}
+Sum~\cref{eq:balance} over the points $\vec y+2j\vec v$, with $j\in\Z$. Each odd input contributes its mass multiplied by the sum of its two move probabilities. These probabilities sum to at most one, so
+\[
+ \frac{E_{\vec v}(\vec y)}M
+ =\sum_{j\in\Z}\rho_r(\vec y+(2j+1)\vec v)
+ \bigl(f_{\vec v}(\vec y+(2j+1)\vec v)+g_{\vec v}(\vec y+(2j+1)\vec v)\bigr)
+ \le O_{\vec v}(\vec y).
+\]
+Summing over the odd outputs instead gives $O_{\vec v}(\vec y)/M\le E_{\vec v}(\vec y)$. All terms are nonnegative, which justifies rearranging the sums.
+\end{proof}
+
+\begin{corollary}[Optimal Factor on a Single Line]
+\label{cor:line}
+On the set $\vec y+\Z\vec v$, the smallest factor satisfying~\cref{eq:budget,eq:positive,eq:balance} is
+\[
+ \max\!\left\{E_{\vec v}(\vec y)/O_{\vec v}(\vec y),O_{\vec v}(\vec y)/E_{\vec v}(\vec y)\right\}.
+\]
+The functions of~\cref{def:sum} attain it.
+\end{corollary}
+\begin{proof}
+Along this set, $b_{\vec v}$ alternates between $O_{\vec v}(\vec y)/E_{\vec v}(\vec y)$ and its reciprocal. Thus~\cref{thm:construction} attains the bound of~\cref{lem:lower}.
+\end{proof}
+
+\subsubsection{The Largest Imbalance}
+
+\begin{definition}[Scalar Parity Masses]
+\label{def:scalar}
+For $\alpha>0$ and $t\in\R$, define
+\[
+ \Te(t)\coloneqq\sum_{j\in\Z}e^{-(t+2j)^2/(2\alpha^2)},
+ \qquad
+ \To(t)\coloneqq\sum_{j\in\Z}e^{-(t+2j+1)^2/(2\alpha^2)}.
+\]
+The dependence on $\alpha$ is implicit. Define
+\begin{equation}
+\label{eq:optimum}
+ M^*(\alpha)\coloneqq\frac{\Te(0)}{\To(0)}
+ =\frac{\sum_{j\in\Z}e^{-(2j)^2/(2\alpha^2)}}{\sum_{j\in\Z}e^{-(2j+1)^2/(2\alpha^2)}}.
+\end{equation}
+\end{definition}
+
+\begin{lemma}[Centred Line Has the Largest Imbalance]
+\label{lem:worst}
+For every $\alpha>0$, one has $M^*(\alpha)>1$ and
+\[
+ \max_{t\in\R}\max\!\left\{\frac{\Te(t)}{\To(t)},\frac{\To(t)}{\Te(t)}\right\}=M^*(\alpha).
+\]
+Furthermore, $M^*(\alpha)$ strictly decreases with $\alpha$.
+\end{lemma}
+The proof is given in~\cref{app:analytic}.
+
+\begin{theorem}[Optimal Acceptance on the Discrete Lattice]
+\label{thm:optimal}
+Let $L\subset\R^n$ be a lattice, $r>0$, and $\vec v\in L\setminus\{\vec0\}$. With $\alpha=r/\norm{\vec v}$, the functions of~\cref{def:sum} are admissible with $M=M^*(\alpha)$. This is the smallest repetition factor among all functions satisfying~\cref{eq:budget,eq:positive,eq:balance}. The minimum rejection probability is
+\[
+ 1-\frac1{M^*(\alpha)}=1-\frac{\To(0)}{\Te(0)}.
+\]
+\end{theorem}
+\begin{proof}
+Fix $\vec y\in L$ and set $t=\inner{\vec y}{\vec v}/\norm{\vec v}^2$. The orthogonal decomposition $\vec y=\vec y_{\perp}+t\vec v$ yields
+\[
+ \rho_r(\vec y+k\vec v)=\exp\!\left(-\frac{\norm{\vec y_{\perp}}^2}{2r^2}\right)
+ \exp\!\left(-\frac{(t+k)^2}{2\alpha^2}\right).
+\]
+The common first factor cancels from the parity ratio, so $b_{\vec v}(\vec y)=\To(t)/\Te(t)\le M^*(\alpha)$ by~\cref{lem:worst}. Admissibility follows from~\cref{thm:construction}.
+
+For necessity, apply~\cref{lem:lower} at $\vec y=\vec0$, which is a point of $L$. The masses on $\Z\vec v$ are exactly $e^{-k^2/(2\alpha^2)}$, so $E_{\vec v}(\vec0)/O_{\vec v}(\vec0)=M^*(\alpha)$. Every admissible pair therefore requires $M\ge M^*(\alpha)$. The rejection probability follows from~\cref{lem:output}.
+\end{proof}
+
+\begin{corollary}[A Common Bound for Several Shifts]
+\label{cor:bound}
+Let $B>0$ bound every permitted shift length. The choice $M=M^*(r/B)$ makes the functions of~\cref{def:sum} admissible for all $\vec v\in L$ with $0<\norm{\vec v}\le B$. If a permitted shift has length $B$, this common factor is optimal.
+\end{corollary}
+\begin{proof}
+Since $r/\norm{\vec v}\ge r/B$, monotonicity in~\cref{lem:worst} gives $M^*(r/\norm{\vec v})\le M^*(r/B)$. Apply~\cref{thm:construction,thm:optimal}. A permitted shift of length $B$ also gives the matching lower bound by~\cref{thm:optimal}.
+\end{proof}
+
+\subsection{Comparison with the Original Factor}
+
+\begin{definition}[Original Repetition Factor, {\cite[Corollary~1]{GartnerFull}}]
+\label{def:original}
+The Gaussian repetition factor used in~\cite{GartnerFull} is
+\begin{equation}
+\label{eq:original}
+ \Mold(\alpha)\coloneqq1+\frac{2\alpha\sqrt{2\pi}\,e^{-\pi^2\alpha^2/2}}{e^{-1/(2\alpha^2)}(1-e^{-2\pi^2\alpha^2})}.
+\end{equation}
+\end{definition}
+
+\begin{proposition}[Strict Improvement]
+\label{prop:improvement}
+For every $\alpha>0$, $M^*(\alpha)<\Mold(\alpha)$. The acceptance functions of~\cite[Theorem~1]{GartnerFull} also require a repetition factor strictly larger than $M^*(\alpha)$ when their factor is optimised.
+\end{proposition}
+The proof is given in~\cref{app:analytic}.

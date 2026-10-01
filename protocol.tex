@@ -1,0 +1,144 @@
+% !TEX root = main.tex
+\section{The Signature Scheme}
+\label{sec:protocol}
+
+We instantiate the acceptance functions in the signature protocol of~\cite{GartnerFull}. The basic protocol is given here, and its bit-dropping variant is specified in~\cref{app:two-compression}. The only change is the choice of the two probabilities in~\cref{fig:step} and their common factor $M$. Gaussian sampling and real-valued probability comparisons are ideal operations here. A finite-precision implementation must approximate their joint distribution to negligible statistical distance.
+
+\subsection{Parameters and the Basic Protocol}
+
+\begin{definition}[Signature Parameters]
+\label{def:parameters}
+Let $d$ be a power of two, let $q$ be an odd prime, and let $\ring\cong\Z[X]/\langle X^d+1\rangle$ and $\ring_a\coloneqq\ring/a\ring$. Fix positive integers $\ell,m,\kappa$ with $\kappa\le d$, positive widths $\sigma,r$, and positive bounds $B_k,B_s$. Write $N\coloneqq d(\ell+m+1)$ and $\vec j\coloneqq(1,0,\ldots,0)^T\in\ring^m$. All norms are Euclidean norms of coefficient vectors. The challenge set $\mathcal C$ is a nonempty subset of binary ring elements of weight at most $\kappa$. The random oracle $H\colon\ring_{2q}^m\times\{0,1\}^*\to\mathcal C$ returns independent uniform challenges. Public parameters, including the admissible functions and $M$, are implicit in the algorithms.
+\end{definition}
+
+For the three parameter sets below, $d=256$. For $\kappa\in\{58,80\}$, the challenge set consists of all binary ring elements of weight exactly $\kappa$. For $\kappa=128$, it consists of all binary ring elements of weight less than $128$, together with those of weight $128$ whose constant coefficient is zero. This last set has size $2^{255}$. These are the challenge spaces used in~\cite{GartnerFull,TCHES:CCDGHK24}. The definition specifies the distribution without requiring a particular hash-to-challenge encoding.
+
+\begin{figure}[!htbp]
+\centering
+\begin{minipage}[t]{.48\linewidth}
+\centering
+\procedure[linenumbering]{$\mathsf{KeyGen}()$}{
+ \mat A_0\leftarrow\Unif(\ring_q^{m\times\ell}) \\
+ \textbf{repeat} \\
+ \quad\vec s_0\leftarrow D_{\ring^\ell,\sigma} \\
+ \quad\vec e\leftarrow D_{\ring^m,\sigma} \\
+ \quad\textbf{repeat} \\
+ \qquad f_0\leftarrow D_{\ring,\sigma} \\
+ \qquad f\coloneqq2f_0+1 \\
+ \quad\textbf{until }f\text{ is invertible in }\ring_q \\
+ \quad\vec s\coloneqq(f,\vec s_0^T,\vec e^T)^T \\
+ \textbf{until }\norm{\vec s}<B_k \\
+ \vec b\coloneqq f^{-1}(\mat A_0\vec s_0+\vec e)\bmod q \\
+ \mat A_1\coloneqq[q\vec j-2\vec b,\ 2\mat A_0] \\
+ \mat A\coloneqq[\mat A_1,\ 2\mat I_m]\bmod2q \\
+ \textbf{return }(\mat A,\vec s)
+}
+\medskip
+\procedure[linenumbering]{$\mathsf{Sign}(\mat A,\vec s,\mu)$}{
+ \textbf{repeat} \\
+ \quad\vec y\leftarrow D_{\ring^{\ell+m+1},r} \\
+ \quad\vec w\coloneqq\mat A\vec y\bmod2q \\
+ \quad c\coloneqq H(\vec w,\mu) \\
+ \quad\vec z\leftarrow\mathsf{RejectSample}_{\vec s}(\vec y,c) \\
+ \textbf{until }\vec z\ne\bot\text{ and }\norm{\vec z}\le B_s \\
+ \textbf{return }(\vec z,c)
+}
+\end{minipage}\hfill
+\begin{minipage}[t]{.49\linewidth}
+\centering
+\procedure[linenumbering]{$\mathsf{RejectSample}_{\vec s}(\vec y,c)$}{
+ \vec z\coloneqq\vec y \\
+ k\coloneqq\norm{c}_1 \\
+ \textbf{for }j=0,\ldots,d-1\text{ with }c_j=1 \\
+ \quad\vec z\leftarrow R_{X^j\vec s}(\vec z) \\
+ \quad\textbf{if }\vec z=\bot \\
+ \qquad\textbf{return }\bot \\
+ u\leftarrow\Unif([0,1)) \\
+ \textbf{if }u\ge M^{k-\kappa} \\
+ \quad\textbf{return }\bot \\
+ \textbf{return }\vec z
+}
+\medskip
+\procedure[linenumbering]{$\mathsf{Verify}(\mat A,\mu,(\vec z,c))$}{
+ \textbf{if }\vec z\notin\ring^{\ell+m+1}\text{ or }c\notin\mathcal C \\
+ \quad\textbf{return }0 \\
+ \textbf{if }\norm{\vec z}>B_s \\
+ \quad\textbf{return }0 \\
+ \vec w'\coloneqq\mat A\vec z-qc\vec j\bmod2q \\
+ \textbf{return }[H(\vec w',\mu)=c]
+}
+\end{minipage}
+\caption{Key generation, the iterative sampler, and the basic signature protocol.}
+\label{fig:signature}
+\end{figure}
+
+\cref{fig:signature} specifies key generation, signing, verification, and the entire iterative sampler. Ring elements are lifted coefficientwise when constructing $\mat A$. The public key can be stored as $(\mat A_0,\vec b)$ because the remaining blocks of $\mat A$ are fixed. Every shift $X^j\vec s$ has norm $\norm{\vec s}<B_k$, since multiplication by a monomial is a signed permutation of coefficients. The improved instantiation uses~\cref{eq:functions} with $M=M^*(r/B_k)$ from~\cref{cor:bound}.
+
+For completeness, the original instantiation uses $M=\Mold(r/B_k)$ from~\cref{eq:original}. With
+\[
+ S_{\vec v}(\vec y)\coloneqq\frac{1}{\rho_r(\vec y)}\sum_{j\ge0}(-1)^j\rho_r(\vec y+j\vec v),
+\]
+its probabilities are~\cite[Corollary~1]{GartnerFull}
+\begin{align*}
+ f^{\mathsf{orig}}_{\vec v}(\vec y)&=\frac1M
+ \begin{cases}S_{\vec v}(\vec y)&\inner{\vec y}{\vec v}\ge\norm{\vec v}^2,\\1-S_{\vec v}(-\vec y)&\text{otherwise},\end{cases}
+ \\
+ g^{\mathsf{orig}}_{\vec v}(\vec y)&=\frac1M
+ \begin{cases}1-S_{\vec v}(\vec y)&\inner{\vec y}{\vec v}\ge-\norm{\vec v}^2,\\S_{\vec v}(-\vec y)&\text{otherwise}.\end{cases}
+\end{align*}
+Thus the replacement changes no move, challenge, key, or verification equation.
+
+\begin{lemma}[Basic Correctness]
+\label{lem:basic-correctness}
+Every signature returned by $\mathsf{Sign}$ in~\cref{fig:signature} is accepted by $\mathsf{Verify}$.
+\end{lemma}
+\begin{proof}
+Key generation gives $\mat A\vec s=q\vec j\bmod2q$. Indeed, its even part vanishes modulo $2q$ by $f\vec b=\mat A_0\vec s_0+\vec e\bmod q$, and $qf\vec j=q\vec j\bmod2q$ because $f=1\bmod2$. A successful iteration produces $\vec z=\vec y+c'\vec s$, where each nonzero coefficient of $c'$ is $1$ or $-1$ and $c'=c\bmod2$. Therefore $\mat A\vec z=\mat A\vec y+qc\vec j\bmod2q$. Verification reconstructs the hashed commitment, and the signing loop enforces the norm bound.
+\end{proof}
+
+\subsection{Conditional Unforgeability}
+
+\begin{definition}[Existential Unforgeability]
+\label{def:euf-cma}
+In the experiment for existential unforgeability under chosen-message attacks (EUF-CMA), an adversary receives the public key, accesses the random oracle and a signing oracle, and wins by producing an accepted signature on a message it never submitted to the signing oracle. A scheme is EUF-CMA secure if every probabilistic polynomial-time adversary wins with negligible probability in the security parameter $\lambda$. A probability is negligible if it decreases faster than every inverse polynomial in $\lambda$. The no-message version (EUF-NMA) provides no signing oracle.
+\end{definition}
+
+\begin{definition}[Bounded-Key NTWE Assumption]
+\label{def:ntwe}
+The bounded-key decisional NTWE assumption asserts that $(\mat A_0,\vec b)$ output by the exact key-generation distribution of~\cref{fig:signature} is computationally indistinguishable from independent uniform elements of $\ring_q^{m\times\ell}\times\ring_q^m$. Indistinguishability means that every probabilistic polynomial-time distinguisher has negligible difference in acceptance probabilities between the two distributions. This definition includes invertibility resampling and the test $\norm{\vec s}<B_k$.
+\end{definition}
+
+\begin{definition}[Bimodal Self-Target MSIS Assumption]
+\label{def:self-target}
+For uniform independent $\mat A_0,\vec b$, construct $\mat A=[q\vec j-2\vec b,2\mat A_0,2\mat I_m]\bmod2q$. Given $\mat A$ and a random oracle $H\colon\ring_{2q}^m\times\{0,1\}^*\to\mathcal C$, the problem at bound $B$ is to find $(\vec z,c,\mu)$ such that
+\[
+ \vec z\in\ring^{\ell+m+1}\setminus\{\vec0\},\qquad
+ \norm{\vec z}\le B,\qquad c\in\mathcal C,\qquad
+ H(\mat A\vec z-qc\vec j\bmod2q,\mu)=c.
+\]
+The assumption asserts that every probabilistic polynomial-time algorithm has negligible success probability. This is the self-target assumption used for ordinary unforgeability in~\cite{GartnerFull}.
+\end{definition}
+
+The associated identification protocol uses an independent uniform verifier challenge in place of the hash value. Its accepting transcript can be sampled from the public key by first choosing a norm-truncated Gaussian response and a uniform challenge, then reconstructing the commitment. The full identification protocol and the simulators are given in~\cref{app:security}.
+
+\begin{lemma}[Accepting Simulation and Commitment Entropy]
+\label{lem:simulation}
+Use any admissible functions with a common factor $M$. Put $\eta\coloneqq\Pr_{\vec z\leftarrow D_{\ring^{\ell+m+1},r}}[\norm{\vec z}\le B_s]$. The identification protocols accept with probability $\eta M^{-\kappa}$, and the simulators of~\cref{fig:simulator} sample their exact transcript distributions conditional on acceptance. For every generated key, either commitment has min-entropy at least
+\begin{equation}
+\label{eq:entropy-bound}
+ \gamma_r\coloneqq d\log_2\bigl(1+1/M^*(r)\bigr).
+\end{equation}
+Here min-entropy at least $\gamma$ means that no fixed commitment has probability greater than $2^{-\gamma}$ before the challenge is received.
+\end{lemma}
+
+The proof is given in~\cref{app:security}. The commitment entropy comes from the coefficient parities, which the commitment determines even after bit-dropping.
+
+\begin{theorem}[Signature Security]
+\label{thm:signature-security}
+Let the public parameters be functions of $\lambda$. Assume efficient key generation and sampling, admissible move probabilities, $\eta M^{-\kappa}\ge1/\poly(\lambda)$, $\gamma_r=\omega(\log\lambda)$, and negligible $1/|\mathcal C|$. Under the bounded-key NTWE assumption and the bimodal self-target MSIS assumption at bound $B_s$, the algorithms $(\mathsf{KeyGen},\mathsf{Sign},\mathsf{Verify})$ in~\cref{fig:signature} form an EUF-CMA secure signature scheme in the classical random-oracle model. Under the same conditions and self-target assumption at bound $B_v$, the algorithms $(\mathsf{KeyGen},\mathsf{CSign},\mathsf{CVerify})$ in~\cref{fig:signature,fig:compressed} form such a scheme when~\cref{eq:verification-bound} holds. Both statements apply to the improved functions with $M=M^*(r/B_k)$. Negligible total statistical error in implementing the ideal samplers preserves these conclusions.
+\end{theorem}
+
+The proof in~\cref{app:security} first replaces the public key by a uniform key, then maps a nonzero forgery to the self-target problem. The accepting-transcript simulator gives the chosen-message reduction. A zero response contributes at most $(q_H+1)/|\mathcal C|$ for $q_H$ classical hash queries.
+
+\cref{thm:signature-security} establishes ordinary unforgeability. Strong unforgeability also excludes new signatures on previously signed messages and requires the additional response-uniqueness analysis at bound $2B_v$ used in~\cite{GartnerFull}.
+\FloatBarrier

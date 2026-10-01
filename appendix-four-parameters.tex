@@ -1,0 +1,176 @@
+% !TEX root = main.tex
+\section{Detailed Four-Move Parameters and Estimates}
+\label{app:four-comparison}
+
+We compare three distinct lattice parameter sets. Within each set, the key distribution, challenge space, and compressed verification relation are fixed. The three columns use the two-move rule of~\cite{GartnerFull}, optimal two moves, and optimal four moves. The two-move rules are valid in the folded protocol because $\pm1=1\pmod I$. The columns therefore compare acceptance rules on the same parameters. The rejecting parameter sets of~\cite{GartnerFull} are reproduced separately in~\cref{tab:parameters}.
+
+\begin{definition}[Classical Query Budget]
+\label{def:query-budget}
+Let $Q$ be the maximum number of classical queries made to $H_4$ in the no-message challenge-search calculation, and put $h\coloneqq\log_2|\mathcal C_4|$. The illustrative budget is $Q=2^{64}$. A target exponent $t$ allocates $2^{-t}$ to the query contribution $Q2^{-h}$, requiring $h\ge t+\log_2Q$. The query count $Q$ is distinct from the modulus $q$.
+\end{definition}
+
+\begin{definition}[Concrete Comparison Parameters]
+\label{def:four-parameters}
+Use sets A, B, and C of~\cref{tab:four-parameters}, all with
+\[
+ q=50177,\qquad \Delta=64,\qquad
+ B_k=\left\lceil\sigma\sqrt{d(\ell+m+4)}\right\rceil.
+\]
+The binary challenges are supported on the first $b=d/2$ coefficients. Their distributions are
+\begin{equation}
+\label{eq:four-weight}
+ \begin{array}{c|c|c}
+ \text{Set}&\mathcal C_4&|\mathcal C_4|\\ \hline
+ A&\{c\in\{0,1\}^{256}:\norm{c}_1=58\}&\binom{256}{58}\\
+ B&\{0,1\}^{256}&2^{256}\\
+ C&\{c\in\{0,1\}^{512}:\norm{c}_1=82\}&\binom{512}{82}
+ \end{array}
+\end{equation}
+For each set, choose widths $r_{\mathsf{orig}},r_2,r_4$ with two expected sampler attempts,
+\begin{equation}
+\label{eq:four-matched}
+ \Mold(r_{\mathsf{orig}}/B_k)^\kappa
+ =M^*(r_2/B_k)^\kappa
+ =M_4^*(r_4/B_k)^\kappa=T,\qquad T=2.
+\end{equation}
+\end{definition}
+
+
+Sets A and C use reduced, fixed Hamming weights. Set B uses weights from $0$ to $256$, with mean $128$. Its repetition exponent is the maximum $256$, not the mean. The final retention test makes acceptance independent of the actual weight. Each row uses the same challenge distribution for both two-move rules and four moves.
+
+The target exponent $t$ in~\cref{tab:four-parameters} concerns only challenge search. It does not label a complete signature-security level. At degree $512$, the smaller target in set A permits weight $58$. Set B needs all $256$ challenge bits for its allocation. Set C uses degree $1024$ to obtain enough challenge positions for its larger target while retaining a fixed weight of $82$.
+
+\subsection{Smaller Signatures at Fixed Rejection}
+
+\begin{definition}[Four-Move Size Estimate]
+\label{def:four-size}
+For each parameter set, define the challenge encoding length
+\[
+ L_c\coloneqq\max\left\{32,\left\lceil\frac{\log_2|\mathcal C_4|}{8}\right\rceil\right\}
+\]
+and the estimates
+\begin{align}
+ H_{4,\mathsf{est}}(r)&\coloneqq
+ \frac{d(\ell+1)}2\log_2(2\pi e r^2)
+ +\frac{dm}2\log_2\bigl(2\pi e(r/\Delta)^2\bigr),\label{eq:four-entropy-size}\\
+ L_{4,\mathsf{est}}(r)&\coloneqq
+ \left\lceil H_{4,\mathsf{est}}(r)/8\right\rceil+L_c+32.\label{eq:four-byte-size}
+\end{align}
+The final $32$ bytes are padding. The response coordinates use the Gaussian entropy model of~\cref{def:size-model}, and the hint indices use Gaussian width $r/\Delta$.
+\end{definition}
+
+A fixed-weight challenge can be represented by its index in a fixed enumeration of the corresponding binary vectors. Thus $L_c$ bytes suffice for an injective challenge encoding. Sets A and B retain the $32$ challenge bytes used in~\cite{GartnerFull}. Set C requires $41$ bytes. The same overhead is included in every sampler column of a row.
+
+Setting $\Delta=\tau/2$ makes~\cref{eq:four-entropy-size} equal to~\cref{eq:entropy-size}. The coefficient of the omitted response is one instead of two, giving hint width $r/\Delta$ and worst-case reconstruction error $\Delta/2+1=\tau/4+1$. The byte counts are entropy estimates. A concrete encoder must also reject malformed encodings and account for overflow.
+
+\begin{proposition}[Fixed-Rate Four-Move Improvement]
+\label{prop:four-size}
+At the matched factors of~\cref{eq:four-matched}, $r_4<r_2<r_{\mathsf{orig}}$, and the entropy saving relative to either two-move width $r_i$ is
+\[
+ H_{4,\mathsf{est}}(r_i)-H_{4,\mathsf{est}}(r_4)
+ =N\log_2(r_i/r_4).
+\]
+All three samplers have acceptance probability $1/T$ before the norm test.
+\end{proposition}
+\begin{proof}
+For every $\alpha>0$, $1<M_4^*(\alpha)<M^*(\alpha)<\Mold(\alpha)$. The first comparison follows from~\cref{eq:four-rate}, and the last is~\cref{prop:improvement}. The optimal factors are continuous and strictly decreasing, with limits infinity and one. Hence matching a common factor greater than one gives the stated width ordering. The coefficients of $\log_2r$ in~\cref{eq:four-entropy-size} sum to $N$, proving the saving. The acceptance claim follows from the iterative incoming identities and the retention test.
+\end{proof}
+
+\cref{tab:four-sizes} gives the size comparison at two expected sampler attempts in every row. Four moves save $162$, $195$, and $259$ bytes relative to the two-move rule of~\cite{GartnerFull} on the same parameters. Optimising the two-move functions accounts for $28$, $28$, and $42$ bytes, while the additional orthogonal moves account for another $134$, $167$, and $217$ bytes. The key size does not change between columns.
+
+
+\subsection{Widths, Norm Bounds, and Lattice Estimates}
+
+\cref{tab:four-bounds} reports every response width and norm bound used in~\cref{tab:four-sizes}. The signing cutoff is $B_s=\lceil1.02r\sqrt N\rceil$, and the verification cutoff is $B_v=\lceil B_s+\sqrt{dm}(\Delta/2+1)\rceil$. The comparison uses the same folded relation within each set, so~\cref{thm:unit-security} applies to all three rules under the folded self-target assumption at that row's largest verification bound.
+
+
+\cref{tab:four-lattice} evaluates the unstructured proxies of~\cref{def:lattice-dimensions} at the matrix dimensions of~\cref{tab:four-parameters}. Each pair again gives the BKZ block size and classical Core-SVP exponent. The NTWE estimates are $969/283$ for set A and $1383/404$ for both B and C, unchanged between sampler columns. Their equality for B and C is a property of the shared unstructured LWE proxy parameters, not an assertion that the different ring structures have identical security.
+
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{llrr}
+\toprule
+Set & Acceptance rule & SIS at $B_v$ & SIS at $2B_v$\\
+\midrule
+A & Rule of~\cite{GartnerFull} & $1379/402$ & $1121/327$\\
+  & Optimal two & $1399/408$ & $1136/331$\\
+  & Four & $1499/437$ & $1208/352$\\
+\midrule
+B & Rule of~\cite{GartnerFull} & $1265/369$ & $1035/302$\\
+  & Optimal two & $1281/374$ & $1047/305$\\
+  & Four & $1377/402$ & $1121/327$\\
+\midrule
+C & Rule of~\cite{GartnerFull} & $2947/860$ & $2364/690$\\
+  & Optimal two & $2994/874$ & $2396/699$\\
+  & Four & $3253/949$ & $2569/750$\\
+\bottomrule
+\end{tabular}
+\caption{Unstructured SIS proxies, given as BKZ block size / classical Core-SVP bits.}
+\label{tab:four-lattice}
+\end{table}
+
+These lattice estimates do not establish the hardness of the folded self-target relation. In particular, they do not account for challenge search. The $2B_v$ column records the norm bound on the difference of two accepted responses and is not a strong-unforgeability theorem for the four-move scheme. The security statement remains the conditional ordinary-unforgeability theorem of~\cref{thm:unit-security}.
+
+\subsection{Lower Rejection at Fixed Signature Size}
+
+Alternatively, retain $r_{\mathsf{orig}}$ from~\cref{tab:four-bounds} within each set. All three rules then have the same signature-size estimate and norm bounds. \cref{tab:four-fixed-width} reports their sampler rejection $1-M^{-\kappa}$ and expected attempts $M^\kappa$. These are repetition counts, not running-time measurements, since the four-move step evaluates an additional direction.
+
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+& & \multicolumn{2}{c}{Sampler rejection} & \multicolumn{3}{c}{Expected attempts}\\
+Set & Bytes & Optimal two & Four & Rule of~\cite{GartnerFull} & Two & Four\\
+\midrule
+A & 1892 & $2^{-1.826}$ & $2^{-10.046}$ & 2 & 1.392827 & 1.000947\\
+B & 2557 & $2^{-1.873}$ & $2^{-12.297}$ & 2 & 1.375682 & 1.000199\\
+C & 2991 & $2^{-1.837}$ & $2^{-10.571}$ & 2 & 1.388798 & 1.000658\\
+\bottomrule
+\end{tabular}
+\caption{Fixed-size rejection, with original-rule rejection $2^{-1}$ in every row.}
+\label{tab:four-fixed-width}
+\end{table}
+
+\subsection{Norms Used in the Size Calculation}
+
+The public challenge has coefficients in $\{0,1\}$, not a centred alphabet. A nonzero bit requests a step, while the acceptance rule chooses its sign and direction. Thus the response is $\vec z=\vec y+c'\vec s$, not necessarily $\vec y+c\vec s$. The Gaussian response law follows exactly from the incoming identities, as in~\cref{lem:four-simulation}. It does not follow from a central-limit approximation or an assumption of independent random signs.
+
+Each step shifts by $X^j\vec s$ or $\omega X^j\vec s$, both of norm at most $B_k$. The raw sum satisfies
+\[
+ \norm{c'\vec s}\le\norm{c'}_1\norm{\vec s}
+ =k\norm{\vec s}\le\kappa B_k,
+\]
+because the lifted challenge has one signed coefficient for every nonzero challenge bit. This worst-case bound is not used to set the response width. A heuristic $\sqrt{k}$ expansion is not used either. The size model uses the accepted Gaussian response law, while every accepted signature satisfies the hard verification cutoff and the compression error is bounded in the worst case.
+
+\begin{lemma}[Gaussian Norm Tail, {\cite[Lemma~6]{GartnerFull}}]
+\label{lem:multi-norm-tail}
+For $\vec z\leftarrow D_{\Z^N,r}$ and $C\ge1$,
+\[
+ \Pr[\norm{\vec z}>Cr\sqrt N]\le
+ \left(C\exp\!\left(\frac{1-C^2}{2}\right)\right)^N.
+\]
+\end{lemma}
+
+The norm test multiplies the sampler acceptance by $\eta$ from~\cref{lem:four-simulation}. Thus $T$ describes sampler attempts, while full signing also includes norm and encoding rejection. The multiplier $1.02$ is a cutoff near the typical Gaussian norm, not a claim that norm rejection is at most $2^{-192}$. Folding changes only commitment parity, not the dimension or norm of the transmitted response.
+
+\subsection{The Hash-Query Budget}
+
+
+
+\begin{proposition}[Challenge Search]
+\label{prop:challenge-search}
+For $Q\le|\mathcal C_4|$ distinct challenges and one unsigned message, a classical adversary can produce a zero-response forgery with probability
+\[
+ 1-(1-2^{-h})^Q.
+\]
+The zero-response contribution of any classical adversary with at most $Q$ oracle queries is at most $(Q+1)2^{-h}$.
+\end{proposition}
+\begin{proof}
+For each tested challenge $c$, query $H_4(\vec0,c,\mu)$. If the value equals $c$, the basic signature $(\vec0,c)$ and the compressed signature $(\vec0,\vec0,c)$ both verify. Distinct challenges give independent oracle inputs, each with success probability $2^{-h}$. This proves the first formula. For the upper bound, each query can match at most one predetermined challenge. Apply the union bound and include a possible unqueried final output.
+\end{proof}
+
+The challenge entropies and query contributions for all three sets are given in~\cref{tab:four-parameters}. In set B, $Q2^{-h}=2^{64-256}=2^{-192}$, with an additional $2^{-256}$ for a possible unqueried final output. Sets A and C have enough entropy slack to include this final output within their respective $2^{-128}$ and $2^{-256}$ allocations. A reduced weight at $b=256$ cannot attain the full $256$ challenge bits required by set B's query allocation. Increasing the degree changes this restriction, as the fixed-weight choice in set C demonstrates.
+
+The full chosen-message bound also includes the advantages against the folded self-target and bounded-key NTWE assumptions, and the simulation terms of~\cref{lem:fs-transfer}. The query calculation alone does not establish a total $2^{-192}$ forgery bound. A quantum query budget has a different search cost~\cite{GroverSearch,BBHTSearch}, and a success bound is distinct from the work-factor comparison used in NIST security categories~\cite{NISTCategories}.
+
+\FloatBarrier

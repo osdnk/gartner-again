@@ -1,0 +1,126 @@
+% !TEX root = main.tex
+\section{Simulation and Security Proofs}
+\label{app:security}
+
+\begin{definition}[Associated Identification Protocol]
+\label{def:identification}
+The associated three-message identification protocol replaces the hash call in a single signing attempt by an independent uniform challenge from an honest verifier. The prover first sends $\vec w$ in the basic variant, or $(\mathsf{HB}(\vec w),\mathsf{LSB}(\vec w))$ in the compressed variant. After receiving $c$, it runs the sampler, aborts on failure or excessive response norm, and sends $\vec z$ or $(\vec z_1,\vec h)$. The verifier checks the corresponding reconstruction equation and norm bound. Its transcript is the commitment, challenge, and response. The Fiat-Shamir transformation replaces this challenge with the random-oracle value on the commitment and message, giving~\cref{fig:signature,fig:compressed}.
+\end{definition}
+
+\subsection{Two-Move Transcript Simulation}
+
+\begin{figure}[t]
+\centering
+\begin{minipage}[t]{.44\linewidth}
+\centering
+\procedure[linenumbering]{$\mathsf{Sim}(\mat A)$}{
+ \textbf{repeat} \\
+ \quad\vec z\leftarrow D_{\ring^{\ell+m+1},r} \\
+ \textbf{until }\norm{\vec z}\le B_s \\
+ c\leftarrow\Unif(\mathcal C) \\
+ \vec w\coloneqq\mat A\vec z-qc\vec j\bmod2q \\
+ \textbf{return }(\vec w,c,\vec z)
+}
+\end{minipage}\hfill
+\begin{minipage}[t]{.54\linewidth}
+\centering
+\procedure[linenumbering]{$\mathsf{CSim}(\mat A)$}{
+ (\vec w,c,\vec z)\leftarrow\mathsf{Sim}(\mat A) \\
+ (\vec z_1,\vec z_2)\coloneqq\mathsf{Split}(\vec z) \\
+ \vec{w}_{h}\coloneqq\mathsf{HB}(\vec w) \\
+ \vec u\coloneqq\mathsf{LSB}(\vec w) \\
+ \widetilde{\vec w}\coloneqq\vec w-2\vec z_2\bmod2q \\
+ \vec h\coloneqq\vec{w}_{h}-\mathsf{HB}(\widetilde{\vec w})\bmod2(q-1) \\
+ \textbf{return }((\vec{w}_{h},\vec u),c,(\vec z_1,\vec h))
+}
+\end{minipage}
+\caption{Public-key simulators for accepting identification transcripts.}
+\label{fig:simulator}
+\end{figure}
+
+\subsubsection{Two-Move Transcript Distribution}
+
+\begin{proof}[Proof of~\cref{lem:simulation}]
+Fix $c$. Its monomial shifts are fixed independently of $\vec y$, so~\cref{cor:iteration} gives the unnormalised response law $M^{-\kappa}D_{\ring^{\ell+m+1},r}$, irrespective of $c$. The norm test multiplies acceptance by $\eta$, also independently of $c$. Conditional on acceptance, the challenge is uniform and independent of the norm-truncated Gaussian response. By~\cref{lem:basic-correctness}, the commitment is determined by $(\vec z,c)$ as $\vec w=\mat A\vec z-qc\vec j\bmod2q$. This proves exact simulation in the basic case. The compressed transcript is the deterministic transformation implemented by $\mathsf{CSim}$, proving the compressed case.
+
+Both commitments determine $\mathsf{LSB}(\vec w)=\mathsf{LSB}(y_0)\vec j$. The $d$ coefficients of $y_0$ are independent samples from $D_{\Z,r}$. Their larger parity probability is the even probability $M^*(r)/(1+M^*(r))$, by the definition of the centred parity masses. Every fixed parity vector therefore has probability at most $(1+1/M^*(r))^{-d}$. Specifying the whole commitment cannot increase this probability, proving~\cref{eq:entropy-bound}.
+\end{proof}
+
+\subsection{Fiat-Shamir Transfer and Two-Move Security}
+
+\begin{lemma}[Fiat-Shamir Security Transfer, {\cite[Theorem~3]{GartnerFull}}]
+\label{lem:fs-transfer}
+Consider a three-message identification protocol with commitment min-entropy at least $\gamma$, abort probability $\beta<1$, and an efficient public-key simulator for the exact distribution of accepting honest-verifier transcripts. For every classical EUF-CMA adversary making $q_S$ signing queries and $q_H$ random-oracle queries against its Fiat-Shamir signature scheme, there is an EUF-NMA adversary whose success probability $\epsilon_{\mathsf{NMA}}$ satisfies
+\[
+ \epsilon_{\mathsf{CMA}}\le\epsilon_{\mathsf{NMA}}
+ +\frac{2q_S2^{-\gamma/2}}{1-\beta}\sqrt{q_H+1+\frac{q_S}{1-\beta}}
+ +2^{1-\gamma/2}(q_H+1)\sqrt{\frac{q_S}{1-\beta}}.
+\]
+Here $\epsilon_{\mathsf{CMA}}$ is the chosen-message adversary's success probability. The no-message adversary's running time is that of the chosen-message adversary plus the cost of $q_S$ simulator calls, up to polynomial overhead.
+\end{lemma}
+
+\subsubsection{Two-Move Unforgeability}
+
+\begin{proof}[Proof of~\cref{thm:signature-security}]
+Correctness is given by~\cref{lem:basic-correctness,lem:compressed-correctness}. First consider an adversary with no signing queries. Replacing the generated public key by uniform $(\mat A_0,\vec b)$ changes its success probability negligibly under~\cref{def:ntwe}. For the basic scheme, every forgery with nonzero response is then a solution of~\cref{def:self-target} at bound $B_s$.
+
+For the compressed scheme, provide the adversary with $H_c(\vec{w}_{h},\vec u,\mu)=H(\vec{w}_{h}+\vec u\bmod2q,\mu)$. This is a random oracle on its stated domain because the map $(\vec{w}_{h},\vec u)\mapsto\vec{w}_{h}+\vec u\bmod2q$ is injective. Indeed, each coefficient of $\vec{w}_{h}$ is a canonical multiple of $\tau$, and adding a bit neither overlaps adjacent multiples nor wraps modulo $2q$. From any accepted forgery, reconstruct $\vec z'$ as in~\cref{fig:compressed}. Its norm is at most $B_v$, and
+\[
+ \mat A\vec z'-qc\vec j=\vec{w}_{h}'+\vec u'\pmod{2q}.
+\]
+Thus a nonzero $\vec z'$ solves the same self-target problem at bound $B_v$.
+
+A zero response does not solve the stated nonzero-vector problem. However, it requires $H(-qc\vec j,\mu)=c$. The map $c\mapsto-qc\vec j\bmod2q$ is injective on binary challenges. Each classical oracle query can therefore succeed for at most one predetermined challenge, with probability $1/|\mathcal C|$. Including an unqueried final forgery, the zero-response contribution is at most $(q_H+1)/|\mathcal C|$ for $q_H$ queries. The compressed embedding has the same property. This completes the no-message security argument.
+
+Apply~\cref{lem:fs-transfer}. Its hypotheses hold by~\cref{lem:simulation} with abort probability $\beta=1-\eta M^{-\kappa}$ and entropy bound $\gamma_r$. The simulator has expected polynomial running time because $\eta$ is inverse polynomial. For polynomial query counts, both additive terms are negligible because $\gamma_r=\omega(\log\lambda)$ and $(1-\beta)^{-1}$ is polynomially bounded. Hence the chosen-message advantage is negligible. Finally,~\cref{thm:construction,cor:bound} provide admissibility for the improved functions. A coupling with total negligible implementation error changes the adversary's success probability negligibly.
+\end{proof}
+
+\subsection{Four-Move Transcript Simulation}
+
+\cref{fig:four-simulator} specifies the accepting-transcript simulators. The compressed simulator applies the same rounding and hint map as the signer.
+
+\begin{figure}[!htbp]
+\centering
+\begin{minipage}[t]{.44\linewidth}
+\centering
+\procedure[linenumbering]{$\mathsf{Sim}_4(\mat B)$}{
+ \textbf{repeat} \\
+ \quad\vec z\leftarrow D_{\ring^{\ell+m+1},r} \\
+ \textbf{until }\norm{\vec z}\le B_s \\
+ c\leftarrow\Unif(\mathcal C_4) \\
+ \vec w\coloneqq\mat B\vec z\bmod q \\
+ \vec u\coloneqq\mathsf{Fold}(z_0)-c\bmod2 \\
+ \textbf{return }((\vec w,\vec u),c,\vec z)
+}
+\end{minipage}\hfill
+\begin{minipage}[t]{.54\linewidth}
+\centering
+\procedure[linenumbering]{$\mathsf{CSim}_4(\mat B)$}{
+ ((\vec w,\vec u),c,\vec z)\leftarrow\mathsf{Sim}_4(\mat B) \\
+ (\vec z_1,\vec z_2)\coloneqq\mathsf{Split}(\vec z) \\
+ \vec w_h\coloneqq\mathsf{Q}_\Delta(\vec w) \\
+ \widetilde{\vec w}\coloneqq\vec w-\vec z_2\bmod q \\
+ \vec h\coloneqq\vec w_h-\mathsf{Q}_\Delta(\widetilde{\vec w})\bmod(q-1) \\
+ \textbf{return }((\vec w_h,\vec u),c,(\vec z_1,\vec h))
+}
+\end{minipage}
+\caption{Accepting-transcript simulators for the four-move protocols.}
+\label{fig:four-simulator}
+\end{figure}
+
+\subsubsection{Four-Move Transcript Distribution}
+
+\begin{proof}[Proof of~\cref{lem:four-simulation}]
+For each fixed challenge,~\cref{thm:four-optimal} gives the incoming Gaussian identity at each step. The final retention test gives unnormalised response law $M^{-\kappa}D_{\ring^{\ell+m+1},r}$, independently of the challenge weight. The norm test multiplies acceptance by $\eta$. Conditional on acceptance, $\vec z$ is a norm-truncated Gaussian independent of the uniform challenge. The key equations determine the basic commitment from $(\vec z,c)$, proving exact simulation. The compressed transcript is the deterministic transformation in $\mathsf{CSim}_4$.
+
+Each coefficient of $y_0$ has parity bias $\delta_0(r)$. Each folded bit sums two independent coefficients, so its parity bias is $\delta_0(r)^2$. The $b$ folded bits are independent. Every fixed folded vector therefore has probability at most $((1+\delta_0(r)^2)/2)^b$. Both commitments contain this vector, proving~\cref{eq:fold-entropy}.
+\end{proof}
+
+\subsection{Four-Move Unforgeability}
+
+\begin{proof}[Proof of~\cref{thm:unit-security}]
+Correctness is~\cref{lem:unit-correctness,lem:four-compressed}. For an adversary with no signing queries, replace the public key by uniform $(\mat A_0,\vec b)$ under the bounded-key NTWE assumption. Every basic forgery with nonzero response solves the folded self-target problem at bound $B_s$. Every compressed forgery determines a response $\vec z'$ with $\mat B\vec z'=\vec w_h'\pmod q$ and unchanged first ring coordinate. Thus a nonzero reconstructed response solves the same problem at bound $B_v$.
+
+A zero response requires $H_4(\vec0,c,\mu)=c$. Distinct challenges give distinct oracle inputs, so the contribution of zero responses is at most $(q_H+1)/|\mathcal C_4|$, including an unqueried final output. This completes the no-message argument. Apply~\cref{lem:fs-transfer} with $\gamma=\gamma_4$ and $\beta=1-\eta M^{-\kappa}$. Its simulation and entropy hypotheses follow from~\cref{lem:four-simulation}, and its additional terms are negligible under the stated conditions. Total negligible implementation error changes the success probability negligibly. For either two-move rule, $\pm1=1\pmod I$ preserves correctness, and its incoming identity gives the same simulation argument.
+\end{proof}
+\FloatBarrier

@@ -1,0 +1,98 @@
+% !TEX root = main.tex
+\section{The Rejection Sampling Framework}
+\label{sec:framework}
+
+\subsection{Gaussian Inputs and Signed Moves}
+
+\begin{definition}[Lattice and Gaussian Distribution]
+\label{def:gaussian}
+Let $L\subset\R^n$ be a lattice, let $r>0$, and let $\vec v\in L\setminus\{\vec 0\}$. Vectors use their Euclidean inner product and norm. For $\vec y\in\R^n$ and a countable set $A\subset\R^n$, define
+\[
+\rho_r(\vec y)\coloneqq\exp\!\left(-\frac{\norm{\vec y}^2}{2r^2}\right),
+\qquad
+\rho_r(A)\coloneqq\sum_{\vec y\in A}\rho_r(\vec y).
+\]
+The centred discrete Gaussian $D_{L,r}$ assigns probability $\rho_r(\vec y)/\rho_r(L)$ to each $\vec y\in L$. Define the width-to-shift ratio $\alpha\coloneqq r/\norm{\vec v}$.
+\end{definition}
+
+This includes the coefficient lattice used in~\cite{GartnerFull}. For a power of two $d$, a positive integer $\ell$, and $\ring\cong\Z[X]/\langle X^d+1\rangle$, coefficient vectors identify $\ring^\ell$ with $\Z^{d\ell}$. Thus the Gaussian calculations below apply directly to its ring vectors.
+
+\begin{definition}[Rejection Step]
+\label{def:step}
+For functions $f_{\vec v},g_{\vec v}\colon L\to\R$ satisfying $f_{\vec v}(\vec y),g_{\vec v}(\vec y)\ge0$ and $f_{\vec v}(\vec y)+g_{\vec v}(\vec y)\le1$, let $R_{\vec v}(\vec y)$ return $\vec y-\vec v$ with probability $f_{\vec v}(\vec y)$, return $\vec y+\vec v$ with probability $g_{\vec v}(\vec y)$, and return the failure symbol $\bot$ otherwise. Its procedure is given in~\cref{fig:step}, where $\Unif([0,1))$ denotes the uniform distribution on $[0,1)$.
+\end{definition}
+
+\begin{figure}[t]
+\centering
+\procedure[linenumbering]{$R_{\vec v}(\vec y)$}{
+ a \coloneqq f_{\vec v}(\vec y) \\
+ b \coloneqq g_{\vec v}(\vec y) \\
+ u \leftarrow \Unif([0,1)) \\
+ \textbf{if }u<a \\
+ \quad\textbf{return }\vec y-\vec v \\
+ \textbf{if }u<a+b \\
+ \quad\textbf{return }\vec y+\vec v \\
+ \textbf{return }\bot
+}
+\caption{The rejection step of~\cite{GartnerFull}.}
+\label{fig:step}
+\end{figure}
+
+\begin{definition}[Admissible Acceptance Functions]
+\label{def:admissible}
+A pair $f_{\vec v},g_{\vec v}$ is admissible with repetition factor $M\ge1$ if, for every $\vec y\in L$,
+\begin{align}
+ f_{\vec v}(\vec y)+g_{\vec v}(\vec y)&\le1,\label{eq:budget}\\
+ f_{\vec v}(\vec y),\ g_{\vec v}(\vec y)&\ge0,\label{eq:positive}\\
+ \rho_r(\vec y+\vec v)f_{\vec v}(\vec y+\vec v)+\rho_r(\vec y-\vec v)g_{\vec v}(\vec y-\vec v)&=\frac{\rho_r(\vec y)}M.\label{eq:balance}
+\end{align}
+The same $M$ is used for all inputs.
+\end{definition}
+
+\begin{lemma}[Output Distribution, {\cite[Lemma~1]{GartnerFull}}]
+\label{lem:output}
+For admissible acceptance functions and $\vec y\leftarrow D_{L,r}$, let $\vec z\leftarrow R_{\vec v}(\vec y)$. Then
+\[
+ \Pr[\vec z=\vec x]=\frac{D_{L,r}(\vec x)}M\quad(\vec x\in L),
+ \qquad
+ \Pr[\vec z\ne\bot]=\frac1M,
+ \qquad
+ (\vec z\mid\vec z\ne\bot)\sim D_{L,r}.
+\]
+\end{lemma}
+
+The two terms in~\cref{eq:balance} are the only ways to produce a given output. The normalising constant $\rho_r(L)$ is common to the input and target distributions and cancels. These are exactly the three conditions of~\cite{GartnerFull}, specialised to equal Gaussian input and output distributions.
+
+\subsection{Gaussian Masses Along the Shift Direction}
+
+\begin{definition}[Even and Odd Masses]
+\label{def:parity}
+For $\vec y\in L$, define
+\[
+ E_{\vec v}(\vec y)\coloneqq\sum_{j\in\Z}\rho_r(\vec y+2j\vec v),
+ \qquad
+ O_{\vec v}(\vec y)\coloneqq\sum_{j\in\Z}\rho_r(\vec y+(2j+1)\vec v),
+ \qquad
+ b_{\vec v}(\vec y)\coloneqq\frac{O_{\vec v}(\vec y)}{E_{\vec v}(\vec y)}.
+\]
+Both masses are positive. The even class contains the input $\vec y$.
+\end{definition}
+
+Only ratios of these Gaussian masses enter the construction. Their dependence on the ambient vector reduces to one scalar.
+
+\begin{lemma}[One-Dimensional Gaussian Ratios]
+\label{lem:line}
+Let $t=\inner{\vec y}{\vec v}/\norm{\vec v}^2$. For every integer $k$,
+\[
+ \frac{\rho_r(\vec y+k\vec v)}{\rho_r(\vec y)}
+ =\exp\!\left(-\frac{k^2+2kt}{2\alpha^2}\right).
+\]
+Moreover,
+\[
+ b_{\vec v}(\vec y+\vec v)=b_{\vec v}(\vec y-\vec v)=\frac1{b_{\vec v}(\vec y)},
+ \qquad b_{\vec v}(-\vec y)=b_{\vec v}(\vec y).
+\]
+\end{lemma}
+\begin{proof}
+Expanding $\norm{\vec y+k\vec v}^2$ gives $\norm{\vec y}^2+2k\inner{\vec y}{\vec v}+k^2\norm{\vec v}^2$. Substitution into the Gaussian ratio proves the first identity. A shift by $\vec v$ or $-\vec v$ exchanges the two sums of~\cref{def:parity}. Reflection preserves each sum because $\rho_r(-\vec x)=\rho_r(\vec x)$ and the indices can be negated.
+\end{proof}

@@ -1,0 +1,267 @@
+% !TEX root = main.tex
+\section{Four-Move Signatures}
+\label{sec:multimodal}
+
+Adding longer odd multiples of the same vector preserves the parity lower bound of~\cref{lem:lower}. Adding a second orthogonal direction changes that bound. The two one-dimensional parity imbalances multiply, and the acceptance functions can attain the resulting bound. We give optimal four-move functions and a complete compressed signature protocol. A monomial rotation supplies the second orthogonal direction without increasing the shift norm. The verification quotient binds half as many challenge bits as the ring degree.
+
+\subsection{An Explicit Four-Move Rule}
+
+\begin{definition}[Four-Move Probabilities]
+\label{def:four-moves}
+Let $\vec v_1,\vec v_2\in L$ be nonzero orthogonal vectors of equal norm. Abbreviate $b_i(\vec y)\coloneqq b_{\vec v_i}(\vec y)$ and $S_i(\vec y)\coloneqq\widehat S_{\vec v_i}(\vec y)$, using~\cref{def:parity,def:sum}. For a common factor $M$, define
+\begin{equation}
+\label{eq:four-probabilities}
+ \boxed{\displaystyle
+ h_{i,-}(\vec y)\coloneqq\frac{S_i(\vec y)}{M(1+b_1(\vec y)b_2(\vec y))},\qquad
+ h_{i,+}(\vec y)\coloneqq\frac{S_i(-\vec y)}{M(1+b_1(\vec y)b_2(\vec y))}.}
+\end{equation}
+The four-move step returns $\vec y\pm\vec v_i$ with probability $h_{i,\pm}(\vec y)$ and rejects with the remaining probability.
+\end{definition}
+
+Each numerator is the same weighted alternating sum used for two moves. The only new factor in its denominator is $1+b_1b_2$.
+
+\begin{theorem}[Optimal Four-Move Acceptance]
+\label{thm:four-optimal}
+Put $\alpha=r/\norm{\vec v_1}$ and define
+\begin{equation}
+\label{eq:four-rate}
+ M_4^*(\alpha)\coloneqq\frac12\left(M^*(\alpha)+\frac1{M^*(\alpha)}\right).
+\end{equation}
+For $M\ge M_4^*(\alpha)$, the probabilities of~\cref{def:four-moves} are nonnegative, sum to at most one, and satisfy
+\begin{equation}
+\label{eq:multi-balance}
+ \sum_{i=1}^2\bigl(\rho_r(\vec y+\vec v_i)h_{i,-}(\vec y+\vec v_i)
+ +\rho_r(\vec y-\vec v_i)h_{i,+}(\vec y-\vec v_i)\bigr)=\frac{\rho_r(\vec y)}M.
+\end{equation}
+The factor $M_4^*(\alpha)$ is optimal among all acceptance functions using these four moves and preserving $D_{L,r}$ conditional on acceptance with an input-independent factor.
+\end{theorem}
+\begin{proof}
+Nonnegativity follows from~\cref{thm:construction}. Its sum identity gives
+\[
+ \sum_{i,\pm}h_{i,\pm}(\vec y)=\frac{b_1+b_2}{M(1+b_1b_2)}.
+\]
+Define $\delta_i=(1-b_i)/(1+b_i)$ and $\delta_0=(M^*(\alpha)-1)/(M^*(\alpha)+1)$. By~\cref{lem:worst}, $|\delta_i|\le\delta_0$. Direct substitution gives
+\[
+ \frac{b_1+b_2}{1+b_1b_2}=\frac{1-\delta_1\delta_2}{1+\delta_1\delta_2}
+ \le\frac{1+\delta_0^2}{1-\delta_0^2}=M_4^*(\alpha),
+\]
+proving the budget bound.
+
+Orthogonality makes $b_j(\vec y\pm\vec v_i)=b_j(\vec y)$ for $j\ne i$, while~\cref{lem:line} gives $b_i(\vec y\pm\vec v_i)=1/b_i(\vec y)$. Thus the reciprocal denominator, without $M$, at either neighbour in direction $i$ is $b_i/(b_1+b_2)$. The incoming numerator identity of~\cref{thm:construction} is $\rho_r(\vec y)$. The contribution of direction $i$ to~\cref{eq:multi-balance} is consequently $\rho_r(\vec y)b_i/(M(b_1+b_2))$. Summing over $i$ proves the identity.
+
+For optimality, restrict to $\Z\vec v_1+\Z\vec v_2$, which contains the origin and is invariant under every allowed move. Orthogonality makes its Gaussian masses products of one-dimensional masses. The total masses of the two classes determined by the parity of the sum of the two integer coordinates are
+\[
+ A=\Te(0)^2+\To(0)^2,\qquad B=2\Te(0)\To(0).
+\]
+Every move exchanges these classes. Summing the incoming identity over the heavier class gives $A/M\le B$, so $M\ge A/B=M_4^*(\alpha)$.
+\end{proof}
+
+\begin{corollary}[Four-Move Rejection]
+\label{cor:four-rejection}
+Define $\delta_0(\alpha)\coloneqq(M^*(\alpha)-1)/(M^*(\alpha)+1)$. With $\delta_0=\delta_0(\alpha)$, the optimal rejection probabilities for two and four moves are respectively
+\[
+ p_2=\frac{2\delta_0}{1+\delta_0},\qquad
+ p_4=\frac{2\delta_0^2}{1+\delta_0^2}.
+\]
+A common factor $M=M_4^*(r/B_k)$ is valid whenever both orthogonal shifts have the same norm at most $B_k$.
+\end{corollary}
+\begin{proof}
+Substitute the two factors into $1-1/M$. The common-bound statement follows because $M^*(\alpha)$ decreases with $\alpha$ and $x+x^{-1}$ increases for $x\ge1$.
+\end{proof}
+
+The per-step comparison in~\cref{tab:four-rates} follows by evaluating~\cref{eq:original,cor:four-rejection}. These are sampler probabilities at fixed $\alpha$, before choosing a challenge space or changing ring parameters.
+
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+$\alpha$ & Original two moves & Optimal two moves & Optimal four moves\\
+\midrule
+0.8 & $2^{-1.882}$ & $2^{-2.674}$ & $2^{-6.123}$\\
+1.0 & $2^{-4.156}$ & $2^{-5.140}$ & $2^{-11.239}$\\
+1.2 & $2^{-7.172}$ & $2^{-8.254}$ & $2^{-17.504}$\\
+1.5 & $2^{-12.788}$ & $2^{-14.019}$ & $2^{-29.037}$\\
+\bottomrule
+\end{tabular}
+\caption{Per-step rejection at a fixed width-to-shift ratio.}
+\label{tab:four-rates}
+\end{table}
+
+\subsection{The Ring Construction and Basic Protocol}
+
+\begin{definition}[Four Ring Moves]
+\label{def:unit-family}
+Use the ring and key parameters of~\cref{def:parameters}, and put
+\[
+ b\coloneqq d/2,\qquad \omega\coloneqq X^b,\qquad
+ U\coloneqq\{1,-1,\omega,-\omega\},\qquad I\coloneqq(\omega-1)\ring.
+\]
+The allowed moves for $\vec v$ are $\{\vec v,-\vec v,\omega\vec v,-\omega\vec v\}$. Define the folded parity map by
+\begin{equation}
+\label{eq:fold}
+ \mathsf{Fold}(x)_j\coloneqq x_j+x_{j+b}\bmod2
+ \qquad(0\le j<b).
+\end{equation}
+For a generated public key $(\mat A_0,\vec b)$, define
+\[
+ \mat B_1\coloneqq[-\vec b,\mat A_0],\qquad
+ \mat B\coloneqq[\mat B_1,\mat I_m]\bmod q.
+\]
+Thus $\mat B=2^{-1}\mat A\bmod q$, with $\mat A$ from~\cref{fig:signature}.
+\end{definition}
+
+\begin{lemma}[Move Geometry and Key Equations]
+\label{lem:unit-geometry}
+For every nonzero $\vec v$, the vectors $\vec v$ and $\omega\vec v$ are orthogonal and have equal coefficient norms. Every $u\in U$ equals $1$ modulo $I$. One has $2\ring\subset I$ and $\ring/I\cong\mathbb F_2[X]/\langle X^b-1\rangle$, with quotient map $\mathsf{Fold}$. Every generated key satisfies
+\[
+ \mat B\vec s=\vec0\pmod q,\qquad f=1\pmod I.
+\]
+\end{lemma}
+\begin{proof}
+Multiplication by $\omega$ has an orthogonal coefficient matrix $\mat J$ with $\mat J^2=-\mat I$. Hence $\mat J^T=-\mat J$ and $\inner{\vec v}{\mat J\vec v}=0$. In the quotient by $\omega-1$, one has $\omega=1$ and $\omega^2=-1$, giving $2=0$ and $u=1$ for every $u\in U$. This quotient is exactly the stated binary ring, with coefficient map~\cref{eq:fold}. Finally, $f\vec b=\mat A_0\vec s_0+\vec e\pmod q$ gives $\mat B\vec s=\vec0\pmod q$, while $f=2f_0+1$ and $2\ring\subset I$ give the second key equation.
+\end{proof}
+
+\begin{definition}[Four-Move Challenges]
+\label{def:folded-challenges}
+Choose $1\le\kappa\le b$. Let $\mathcal C_4$ be a nonempty set of binary ring elements supported on coefficients $0,\ldots,b-1$, each of Hamming weight at most $\kappa$. Identify these elements with their $b$-bit vectors. The random oracle
+\[
+ H_4\colon\ring_q^m\times\{0,1\}^b\times\{0,1\}^*\to\mathcal C_4
+\]
+returns independent uniform elements. The full binary choice has $\kappa=b$ and $|\mathcal C_4|=2^b$. A weight cap gives $|\mathcal C_4|\le\sum_{j=0}^{\kappa}\binom bj$, while a fixed-weight choice has cardinality $\binom b\kappa$.
+\end{definition}
+
+\begin{definition}[Four-Move Iteration]
+\label{def:unit-sampler}
+Use~\cref{eq:four-probabilities} with common factor $M=M_4^*(r/B_k)$. The step and iterative sampler are given in~\cref{fig:unit-step}. A challenge of actual weight $k$ invokes $k$ steps. The final retention probability $M^{k-\kappa}$ makes the total acceptance probability independent of $k$.
+\end{definition}
+
+\begin{figure}[!htbp]
+\centering
+\begin{minipage}[t]{.52\linewidth}
+\centering
+\procedure[linenumbering]{$\mathsf{Step}_{\vec v_1,\vec v_2}(\vec y)$}{
+ D\coloneqq M(1+b_{\vec v_1}(\vec y)b_{\vec v_2}(\vec y)) \\
+ t\leftarrow\Unif([0,1)) \\
+ p_{\mathsf{sum}}\coloneqq0 \\
+ \textbf{for }(i,e)\in((1,-1),(1,+1),(2,-1),(2,+1)) \\
+ \quad p\coloneqq\widehat S_{\vec v_i}(-e\vec y)/D \\
+ \quad p_{\mathsf{sum}}\coloneqq p_{\mathsf{sum}}+p \\
+ \quad\textbf{if }t<p_{\mathsf{sum}} \\
+ \qquad\textbf{return }\vec y+e\vec v_i \\
+ \textbf{return }\bot
+}
+\end{minipage}\hfill
+\begin{minipage}[t]{.46\linewidth}
+\centering
+\procedure[linenumbering]{$\mathsf{Reject}_{4,\vec s}(\vec y,c)$}{
+ \vec z\coloneqq\vec y \\
+ k\coloneqq\norm{c}_1 \\
+ \textbf{for }j=0,\ldots,b-1\text{ with }c_j=1 \\
+ \quad\vec v\coloneqq X^j\vec s \\
+ \quad\vec z\leftarrow\mathsf{Step}_{\vec v,\omega\vec v}(\vec z) \\
+ \quad\textbf{if }\vec z=\bot \\
+ \qquad\textbf{return }\bot \\
+ t\leftarrow\Unif([0,1)) \\
+ \textbf{if }t\ge M^{k-\kappa} \\
+ \quad\textbf{return }\bot \\
+ \textbf{return }\vec z
+}
+\end{minipage}
+\caption{The four-move step and iterative sampler.}
+\label{fig:unit-step}
+\end{figure}
+
+The basic signature in~\cref{fig:unit-signature} transmits the full response. The hash binds its image modulo $q$ and the folded parity needed to recover the challenge. The public key is still determined by $(\mat A_0,\vec b)$.
+
+\begin{figure}[!htbp]
+\centering
+\begin{minipage}[t]{.49\linewidth}
+\centering
+\procedure[linenumbering]{$\mathsf{KeyGen}_4()$}{
+ (\mat A,\vec s)\leftarrow\mathsf{KeyGen}() \\
+ \mat B\coloneqq2^{-1}\mat A\bmod q \\
+ \textbf{return }(\mat B,\vec s)
+}
+\par\medskip
+\procedure[linenumbering]{$\mathsf{Sign}_4(\mat B,\vec s,\mu)$}{
+ \textbf{repeat} \\
+ \quad\vec y\leftarrow D_{\ring^{\ell+m+1},r} \\
+ \quad\vec w\coloneqq\mat B\vec y\bmod q \\
+ \quad\vec u\coloneqq\mathsf{Fold}(y_0) \\
+ \quad c\coloneqq H_4(\vec w,\vec u,\mu) \\
+ \quad\vec z\leftarrow\mathsf{Reject}_{4,\vec s}(\vec y,c) \\
+ \textbf{until }\vec z\ne\bot\text{ and }\norm{\vec z}\le B_s \\
+ \textbf{return }(\vec z,c)
+}
+\end{minipage}\hfill
+\begin{minipage}[t]{.49\linewidth}
+\centering
+\procedure[linenumbering]{$\mathsf{Verify}_4(\mat B,\mu,(\vec z,c))$}{
+ \textbf{if }\vec z\notin\ring^{\ell+m+1}\text{ or }c\notin\mathcal C_4 \\
+ \quad\textbf{return }0 \\
+ \textbf{if }\norm{\vec z}>B_s \\
+ \quad\textbf{return }0 \\
+ \vec w'\coloneqq\mat B\vec z\bmod q \\
+ \vec u'\coloneqq\mathsf{Fold}(z_0)-c\bmod2 \\
+ \textbf{return }[H_4(\vec w',\vec u',\mu)=c]
+}
+\end{minipage}
+\caption{Key generation and the basic four-move signature protocol.}
+\label{fig:unit-signature}
+\end{figure}
+
+\begin{lemma}[Four-Move Correctness]
+\label{lem:unit-correctness}
+Every signature returned by $\mathsf{Sign}_4$ is accepted by $\mathsf{Verify}_4$.
+\end{lemma}
+\begin{proof}
+A successful sampler produces $\vec z=\vec y+c'\vec s$, where each nonzero challenge coefficient is replaced by an element of $U$. Thus $c'=c\pmod I$. By~\cref{lem:unit-geometry},
+\[
+ \mat B\vec z=\mat B\vec y\pmod q,\qquad
+ \mathsf{Fold}(z_0)-c=\mathsf{Fold}(y_0)\pmod2.
+\]
+These equations recover both hash inputs. The signing loop enforces the norm test.
+\end{proof}
+
+The compressed protocol and its worst-case reconstruction bound are given in~\cref{app:four-compression}. Bit-dropping leaves the first response ring element unchanged, so it preserves the folded parity used in verification.
+
+\subsection{Conditional Unforgeability}
+
+\begin{lemma}[Simulation and Commitment Entropy]
+\label{lem:four-simulation}
+Let $\eta$ be the probability that a response sampled from $D_{\ring^{\ell+m+1},r}$ has norm at most $B_s$. Both associated identification protocols accept with probability $\eta M^{-\kappa}$. Their exact accepting transcript distributions are sampled by~\cref{fig:four-simulator}. Before the challenge, either commitment has min-entropy at least
+\begin{equation}
+\label{eq:fold-entropy}
+ \gamma_4\coloneqq b\log_2\frac{2}{1+\delta_0(r)^2}.
+\end{equation}
+\end{lemma}
+
+The proof and full simulators are given in~\cref{app:security}. Folding pairs independent coefficient parities, so the bias of a folded bit is the square of a single coefficient's parity bias.
+
+\begin{definition}[Folded Self-Target Assumption]
+\label{def:quotient-self-target}
+Sample independent uniform $\mat A_0,\vec b$, and construct $\mat B$ as in~\cref{def:unit-family}. Given $\mat B$ and the random oracle $H_4$, the folded self-target problem at bound $B$ asks for
+\[
+ \vec z\in\ring^{\ell+m+1}\setminus\{\vec0\},\qquad
+ \norm{\vec z}\le B,\qquad c\in\mathcal C_4,\qquad\mu\in\{0,1\}^*
+\]
+such that
+\[
+ H_4(\mat B\vec z\bmod q,\mathsf{Fold}(z_0)-c\bmod2,\mu)=c.
+\]
+The assumption asserts negligible success for every probabilistic polynomial-time algorithm.
+\end{definition}
+
+\begin{theorem}[Four-Move Signature Security]
+\label{thm:unit-security}
+Assume efficient key generation and sampling, the bounded-key NTWE assumption, $\eta M^{-\kappa}\ge1/\poly(\lambda)$, $\gamma_4=\omega(\log\lambda)$, and negligible $1/|\mathcal C_4|$. Under the folded self-target assumption at bound $B_s$, the algorithms $(\mathsf{KeyGen}_4,\mathsf{Sign}_4,\mathsf{Verify}_4)$ form an EUF-CMA secure signature scheme in the classical random-oracle model. Under the same conditions and the folded self-target assumption at bound $B_v$, the algorithms $(\mathsf{KeyGen}_4,\mathsf{CSign}_4,\mathsf{CVerify}_4)$ form such a scheme when~\cref{eq:four-verification-bound} holds. These conclusions use $M=M_4^*(r/B_k)$ and remain valid with negligible total statistical error in implementing the ideal samplers. Replacing the four-move step by either admissible two-move rule, with its common factor $M$, gives the same conclusions.
+\end{theorem}
+
+The proof is given in~\cref{app:security}. The folded self-target assumption concerns a different relation from~\cref{def:self-target}. The theorem states ordinary unforgeability under this assumption. The concrete comparison in~\cref{sec:results} uses this same folded relation for all three acceptance rules within each parameter set.
+
+\begin{remark}[Additional Unit Moves]
+\label{rem:more-moves}
+For a power of two $a\mid d$, the $2a$ moves $\{\pm X^{jd/a}\vec v:0\le j<a\}$ split into $a/2$ orthogonal pairs of directions. Uniformly choosing a pair and applying~\cref{eq:four-probabilities} has the same factor $M_4^*$, since averaging the incoming identities preserves that factor. The quotient identifying all units with one has only $d/a$ challenge bits, because setting $X^{d/a}=1$ gives $\mathbb F_2[X]/\langle X^{d/a}-1\rangle$. Thus this extension gives no further rejection gain and reduces challenge capacity. Mutual orthogonality of all directions does not follow from equal norms. For eight moves, put $\xi=X^{d/4}$ and $v=1+\xi$. Then $\norm{v}^2=2$ but $\inner{v}{\xi v}=1$. This does not exclude an improvement from a different acceptance rule.
+\end{remark}
+
+\FloatBarrier

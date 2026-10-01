@@ -1,0 +1,93 @@
+% !TEX root = main.tex
+\section{Optimal Two-Move Acceptance}
+\label{sec:construction}
+
+The alternating sum of~\cite{GartnerFull} subtracts odd Gaussian terms from even ones. We weight the even terms by $b_{\vec v}(\vec y)$. The total weighted even mass then equals the total odd mass, which makes both directional tail sums nonnegative.
+
+\subsection{The Weighted Acceptance Functions}
+
+\begin{definition}[Weighted Alternating Sum]
+\label{def:sum}
+For $\vec y\in L$, define
+\begin{equation}
+\label{eq:sum}
+ \widehat S_{\vec v}(\vec y)\coloneqq
+ \frac1{\rho_r(\vec y)}\sum_{j=0}^{\infty}
+ \bigl(b_{\vec v}(\vec y)\rho_r(\vec y+2j\vec v)-\rho_r(\vec y+(2j+1)\vec v)\bigr).
+\end{equation}
+For $M\ge1$, the acceptance functions are
+\begin{equation}
+\label{eq:functions}
+ \boxed{\displaystyle
+ f_{\vec v}(\vec y)\coloneqq\frac{\widehat S_{\vec v}(\vec y)}M,
+ \qquad
+ g_{\vec v}(\vec y)\coloneqq\frac{\widehat S_{\vec v}(-\vec y)}M.}
+\end{equation}
+All sums are absolutely convergent.
+\end{definition}
+
+\subsection{Nonnegativity and Mass Preservation}
+
+\begin{lemma}[Nonnegative Tail Sums]
+\label{lem:tails}
+Let $(a_j)_{j\in\Z}$ be absolutely summable, with $\sum_j a_j=0$. Suppose an integer $J_0$ satisfies $a_j\le0$ for $j<J_0$ and $a_j\ge0$ for $j\ge J_0$. Then $\sum_{j\ge J}a_j\ge0$ for every integer $J$.
+\end{lemma}
+\begin{proof}
+For $J\ge J_0$, every term in the tail is nonnegative. For $J<J_0$, the tail equals $-\sum_{j<J}a_j$, which is nonnegative because every term in this prefix is nonpositive.
+\end{proof}
+
+\begin{theorem}[Correctness of the Acceptance Functions]
+\label{thm:construction}
+For every $\vec y\in L$, the functions of~\cref{def:sum} are nonnegative and satisfy~\cref{eq:balance}. Their sum is
+\begin{equation}
+\label{eq:sum-budget}
+ f_{\vec v}(\vec y)+g_{\vec v}(\vec y)=\frac{b_{\vec v}(\vec y)}M.
+\end{equation}
+Consequently, they are admissible whenever $M\ge\sup_{\vec y\in L}b_{\vec v}(\vec y)$.
+\end{theorem}
+\begin{proof}
+Fix $\vec y$ and abbreviate $p_k=\rho_r(\vec y+k\vec v)$, $E=E_{\vec v}(\vec y)$, $O=O_{\vec v}(\vec y)$, and $b=O/E$. Define $a_j=bp_{2j}-p_{2j+1}$ for all $j\in\Z$. The sequence is absolutely summable, and
+\[
+ \sum_{j\in\Z}a_j=bE-O=0.
+\]
+By~\cref{lem:line}, with $t=\inner{\vec y}{\vec v}/\norm{\vec v}^2$,
+\[
+ \frac{p_{2j+1}}{p_{2j}}=\exp\!\left(-\frac{2t+4j+1}{2\alpha^2}\right).
+\]
+This ratio strictly decreases from infinity to zero as $j$ increases. Since $b>0$, the sign of $a_j$ changes once from negative to positive. By~\cref{lem:tails}, $\sum_{j\ge0}a_j\ge0$, proving $\widehat S_{\vec v}(\vec y)\ge0$. Applying the same argument to $-\vec y$ proves $\widehat S_{\vec v}(-\vec y)\ge0$.
+
+Reflection expresses $p_0\widehat S_{\vec v}(-\vec y)$ as $\sum_{j\ge0}(bp_{-2j}-p_{-(2j+1)})$. The two even half sums count $p_0$ twice and every other even term once. The odd half sums count each odd term once. Therefore
+\[
+ p_0\bigl(\widehat S_{\vec v}(\vec y)+\widehat S_{\vec v}(-\vec y)\bigr)
+ =b(E+p_0)-O=bp_0,
+\]
+which proves~\cref{eq:sum-budget}.
+
+For the incoming mass, the ratio at each of $\vec y+\vec v$ and $\vec y-\vec v$ is $1/b$. Expanding the two functions gives
+\begin{align*}
+ Mp_1 f_{\vec v}(\vec y+\vec v)
+ &=\sum_{j\ge0}\bigl(b^{-1}p_{2j+1}-p_{2j+2}\bigr),\\
+ Mp_{-1}g_{\vec v}(\vec y-\vec v)
+ &=\sum_{j\ge0}\bigl(b^{-1}p_{-(2j+1)}-p_{-(2j+2)}\bigr).
+\end{align*}
+Their sum is $b^{-1}O-(E-p_0)=p_0$, proving~\cref{eq:balance}. Finally, the assumed bound on $M$ and~\cref{eq:sum-budget} give~\cref{eq:budget}.
+\end{proof}
+
+\subsection{Use in an Iterative Sampler}
+
+The construction uses $M$ as a common parameter and computes $b_{\vec v}(\vec y)$ from the Gaussian masses at the input. By~\cref{lem:line}, evaluating the functions requires only $r$, $\norm{\vec v}^2$, and $\inner{\vec y}{\vec v}$.
+
+\begin{corollary}[Fixed Sequences of Shifts]
+\label{cor:iteration}
+Let $\vec v_1,\ldots,\vec v_k\in L\setminus\{\vec0\}$ be fixed before sampling $\vec y\leftarrow D_{L,r}$. Suppose the functions for each shift are admissible with the same factor $M$. Starting with $\vec z_0=\vec y$, apply $\vec z_i\leftarrow R_{\vec v_i}(\vec z_{i-1})$ for $i=1,\ldots,k$, aborting on failure. Then
+\[
+ \Pr[\vec z_k=\vec x]=M^{-k}D_{L,r}(\vec x)
+ \quad(\vec x\in L).
+\]
+For an integer $\kappa\ge k$, independently retaining a successful result with probability $M^{k-\kappa}$ makes the total acceptance probability $M^{-\kappa}$ and leaves the conditional output distribution equal to $D_{L,r}$.
+\end{corollary}
+\begin{proof}
+The unnormalised distribution before step $i$ is $M^{-(i-1)}D_{L,r}$ by induction, starting with $i=1$. Applying~\cref{lem:output} multiplies it by $1/M$. This proves the displayed identity at $i=k$. Independent retention multiplies each output probability by $M^{k-\kappa}$, giving $M^{-\kappa}D_{L,r}(\vec x)$.
+\end{proof}
+
+The retention factor in~\cref{cor:iteration} is the one used in the iterative sampler of~\cite{GartnerFull}. The new functions supply its single-step Gaussian identity with the same two signed moves. A common parameter valid for every shift of a prescribed maximum length is given in~\cref{cor:bound}.

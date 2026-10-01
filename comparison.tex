@@ -1,0 +1,156 @@
+% !TEX root = main.tex
+\section{Detailed Two-Move Parameters and Estimates}
+\label{sec:comparison}
+
+The new functions can reduce rejection at the existing Gaussian width or reduce the width at the existing repetition factor. We evaluate both choices for the three parameter sets of~\cite[Table~1]{GartnerFull}. The parameters held fixed are given in~\cref{tab:parameters}. Set names identify parameter sets, not newly established security levels.
+
+Both the original and improved two-move columns use binary challenges with the same reduced Hamming weights. Sets I and II use weights exactly $58$ and $80$. Set III uses maximum weight $128$ and the half-space choice defined after~\cref{def:parameters}, with $2^{255}$ challenges. None of these three sets uses the full binary challenge space. The exponent $\kappa$ in the rejection calculation is the fixed weight or the maximum permitted weight, never an average weight.
+
+\begin{definition}[Coefficient-Level Lattice Parameters]
+\label{def:lattice-dimensions}
+For ring degree $d$ and module parameters $\ell,m$, the verification matrix has $m$ rows and $\ell+m+1$ columns over the ring. Its coefficient matrix has
+\[
+ n_{\mathsf{SIS}}\coloneqq dm,\qquad
+ m_{\mathsf{SIS}}\coloneqq d(\ell+m+1)=N.
+\]
+The unstructured SIS proxy uses this shape, modulus $q$, and Euclidean bound $B_v$, or $2B_v$ for the response-difference diagnostic. The NTWE proxy of~\cite[Section~5.1 and Appendix~E]{GartnerFull} is unstructured LWE with
+\[
+ n_{\mathsf{LWE}}\coloneqq d(\ell+1)-1,\qquad
+ X_s=X_e=D_{\Z,\sigma},\qquad m_{\mathsf{LWE}}=\infty.
+\]
+The actual module instance supplies $dm$ scalar equations. The infinite-sample proxy is the convention used for the cited estimates.
+\end{definition}
+
+The integer SIS lattice has rank $N$, not $N-dm$, because it contains $q\Z^N$. The verification matrix modulo $q$ contains an invertible scaled identity block, so its kernel over $\ring_q$ is a free module of rank $\ell+1$. These are different uses of rank.
+
+\cref{tab:parameters} reproduces the rejecting parameters and security estimates of~\cite[Table~1]{GartnerFull}. In each security cell, the pair is the BKZ block size followed by the classical Core-SVP exponent $\lfloor0.292\beta\rfloor$. All nine pairs reproduce exactly using the unstructured instances listed in Appendix~E there. These estimates are heuristic work factors, not bounds on the full signature-forgery advantage.
+
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Parameter & I & II & III\\
+\midrule
+Ring degree $d$ & 256 & 256 & 256\\
+Modulus $q$ & 12289 & 50177 & 50177\\
+Module parameters $(\ell,m)$ & $(1,2)$ & $(3,2)$ & $(4,3)$\\
+Module matrix shape & $2\times4$ & $2\times6$ & $3\times8$\\
+Coefficient matrix shape & $512\times1024$ & $512\times1536$ & $768\times2048$\\
+NTWE proxy dimension & 511 & 1023 & 1279\\
+Secret width $\sigma$ & 2.60 & 1.00 & 1.50\\
+Response width $r$ & 128 & 55 & 95\\
+Maximum challenge weight $\kappa$ & 58 & 80 & 128\\
+Compression parameter $\tau$ & 256 & 128 & 128\\
+Secret bound $B_k$ & 110.07 & 48.00 & 79.60\\
+Signing bound $B_s$ & 4178 & 2199 & 4386\\
+Listed verification bound $B_v$ & 5649 & 2946 & 5300\\
+Key bytes & 928 & 1056 & 1568\\
+Signature bytes & 775 & 1184 & 1694\\
+SIS at $B_v$, block size / bits & $420/122$ & $629/183$ & $899/262$\\
+SIS at $2B_v$, block size / bits & $332/96$ & $500/146$ & $730/213$\\
+NTWE, block size / bits & $414/120$ & $618/180$ & $881/257$\\
+\bottomrule
+\end{tabular}
+\caption{The rejecting parameter sets and estimates of~\cite[Table~1]{GartnerFull}.}
+\label{tab:parameters}
+\end{table}
+
+The listed value $B_v=5300$ in set III is retained for exact reproduction of the security estimates. Enforcing~\cref{eq:verification-bound} with the displayed integer $B_s=4386$ requires $5301$, as quantified in~\cref{tab:bounds}. This adjustment does not change the signature-size estimate.
+
+\subsection{Fewer Rejection Attempts at Fixed Width}
+
+\begin{proposition}[Rejection Comparison]
+\label{prop:concrete-rejection}
+For independent uniform challenges in the identification protocol, the rejection probability of one step is $1-M^{-1}$, and the rejection probability of the iterative sampler, including its final retention test, is $1-M^{-\kappa}$. The expected number of independent sampler attempts until acceptance is $M^\kappa$. At fixed $r$ and $B_k$, replacing the original functions by the improved functions therefore reduces this expectation by the fraction
+\[
+ 1-\left(\frac{M^*(r/B_k)}{\Mold(r/B_k)}\right)^\kappa.
+\]
+\end{proposition}
+\begin{proof}
+The step probability follows from~\cref{lem:output} and the sampler probability from~\cref{cor:iteration}. Independent attempts have a geometric waiting time with mean equal to the inverse success probability. Substitution of the two repetition factors gives the reduction.
+\end{proof}
+
+\cref{tab:fixed-width} evaluates~\cref{prop:concrete-rejection} with the printed $B_k$ values of~\cref{tab:parameters}. These probabilities describe the sampler stage before the response-norm test or a byte-encoding overflow test. They also give the signing-attempt model with fresh independent random-oracle challenges. They are not timings of an implementation. At fixed width, the key sizes, response bounds, and signature-size model remain unchanged.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+& & \multicolumn{2}{c}{Sampler rejection} & \multicolumn{2}{c}{Expected attempts} & Reduction\\
+Set & $r$ & Original & Improved & Original & Improved & \\
+\midrule
+I & 128 & $2^{-1.122}$ & $2^{-1.976}$ & 1.850 & 1.341 & $27.5\%$\\
+II & 55 & $2^{-0.640}$ & $2^{-1.365}$ & 2.790 & 1.634 & $41.4\%$\\
+III & 95 & $2^{-0.696}$ & $2^{-1.455}$ & 2.612 & 1.574 & $39.7\%$\\
+\bottomrule
+\end{tabular}
+\caption{Before and after at the original Gaussian widths.}
+\label{tab:fixed-width}
+\end{table}
+
+\subsection{Smaller Widths at Fixed Rejection}
+
+\begin{definition}[Matched Width and Size Model]
+\label{def:size-model}
+For an original width $r_{\mathsf{orig}}$, define $r_{\mathsf{new}}$ by
+\begin{equation}
+\label{eq:matched-rate}
+ M^*(r_{\mathsf{new}}/B_k)=\Mold(r_{\mathsf{orig}}/B_k).
+\end{equation}
+Following~\cite[Equation~(8) and Appendix~A.2]{GartnerFull}, define the compressed-signature entropy estimate in bits and the corresponding padded byte estimate by
+\begin{align}
+ H_{\mathsf{est}}(r)&\coloneqq\frac{d(\ell+1)}2\log_2(2\pi e r^2)+\frac{dm}2\log_2\bigl(8\pi e(r/\tau)^2\bigr),\label{eq:entropy-size}\\
+ L_{\mathsf{est}}(r)&\coloneqq\left\lceil H_{\mathsf{est}}(r)/8\right\rceil+64.\label{eq:byte-size}
+\end{align}
+The additive $64$ bytes account for a $256$-bit challenge and $32$ bytes of padding in this model. The public-key estimate is $32+\lceil dm\lceil\log_2q\rceil/8\rceil$ bytes, using a $32$-byte seed for $\mat A_0$. This seed-based estimate presumes pseudorandom matrix expansion, whereas the mathematical protocol samples $\mat A_0$ uniformly.
+\end{definition}
+
+\begin{proposition}[Matched-Rate Size Difference]
+\label{prop:size-difference}
+The matched width exists uniquely and satisfies $0<r_{\mathsf{new}}<r_{\mathsf{orig}}$. It gives the same iterative-sampler acceptance probability as the original functions at $r_{\mathsf{orig}}$. For fixed $d,\ell,m,\tau$, the entropy difference is
+\[
+ H_{\mathsf{est}}(r_{\mathsf{orig}})-H_{\mathsf{est}}(r_{\mathsf{new}})
+ =N\log_2(r_{\mathsf{orig}}/r_{\mathsf{new}}).
+\]
+\end{proposition}
+\begin{proof}
+By~\cref{lem:worst}, $M^*(\alpha)$ is continuous and strictly decreasing. Its defining sums give $M^*(\alpha)\to\infty$ as $\alpha\to0$, and its product formula gives $M^*(\alpha)\to1$ as $\alpha\to\infty$. Hence~\cref{eq:matched-rate} has a unique solution. By~\cref{prop:improvement}, $M^*(r_{\mathsf{orig}}/B_k)<\Mold(r_{\mathsf{orig}}/B_k)$, so the solution has smaller width. Equality of the factors gives equality of $M^{-\kappa}$. Finally, the coefficients of $\log_2r$ in~\cref{eq:entropy-size} sum to $d(\ell+1)+dm=N$.
+\end{proof}
+
+\cref{tab:fixed-rate} gives the matched widths and size estimates. Each byte count is rounded separately according to~\cref{eq:byte-size}. The widths shown in the table are rounded for display. The estimates reproduce the original $775$, $1184$, and $1694$ bytes and become $764$, $1167$, and $1674$ bytes. Actual encoded lengths and encoding-induced rejection depend on the chosen entropy coder.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+& \multicolumn{2}{c}{Gaussian width} & \multicolumn{2}{c}{Estimated signature bytes} & \multicolumn{2}{c}{Saved}\\
+Set & Original & Improved & Original & Improved & Bytes & Fraction\\
+\midrule
+I & 128 & 120.6834 & 775 & 764 & 11 & $1.42\%$\\
+II & 55 & 51.7805 & 1184 & 1167 & 17 & $1.44\%$\\
+III & 95 & 89.7892 & 1694 & 1674 & 20 & $1.18\%$\\
+\bottomrule
+\end{tabular}
+\caption{Before and after at the original iterative-sampler rejection rates.}
+\label{tab:fixed-rate}
+\end{table}
+
+The norm bounds in~\cref{tab:bounds} use $B_s=\lceil1.02r\sqrt N\rceil$ and $B_v=\lceil B_s+\sqrt{dm}(\tau/4+1)\rceil$. For set III at the original width, this gives $B_v=5301$, whereas~\cite[Table~1]{GartnerFull} lists $5300$. The value $5301$ satisfies~\cref{eq:verification-bound}, since $4386+33\sqrt{768}>5300$. This rounding adjustment does not affect the rejection or size calculations.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+& \multicolumn{2}{c}{Original width} & \multicolumn{2}{c}{Matched width}\\
+Set & $B_s$ & $B_v$ & $B_s$ & $B_v$\\
+\midrule
+I & 4178 & 5649 & 3940 & 5411\\
+II & 2199 & 2946 & 2070 & 2817\\
+III & 4386 & 5301 & 4145 & 5060\\
+\bottomrule
+\end{tabular}
+\caption{Signing and verification bounds for the two width choices.}
+\label{tab:bounds}
+\end{table}
+
+The matched-width comparison preserves the key distribution, challenge space, and modulus, and reduces the response bound in the conditional self-target assumption of~\cref{thm:signature-security}. Its fixed-rate condition concerns iterative rejection. The separate norm and encoding tests must still be included when measuring full signing performance.

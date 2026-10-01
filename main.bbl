@@ -1,0 +1,53 @@
+\newcommand{\etalchar}[1]{$^{#1}$}
+\begin{thebibliography}{CCD{\etalchar{+}}24}
+
+\bibitem[BBHT96]{BBHTSearch}
+Michel Boyer, Gilles Brassard, Peter H{\o}yer, and Alain Tapp.
+\newblock Tight bounds on quantum searching.
+\newblock arXiv:quant-ph/9605034, 1996.
+\newblock URL: \url{https://arxiv.org/abs/quant-ph/9605034}.
+
+\bibitem[CCD{\etalchar{+}}24]{TCHES:CCDGHK24}
+Jung~Hee Cheon, Hyeongmin Choe, Julien Devevey, Tim G{\"u}neysu, Dongyeon Hong,
+  Markus Krausz, Georg Land, Marc M{\"o}ller, Damien Stehl{\'e}, and MinJune
+  Yi.
+\newblock {HAETAE}: Shorter lattice-based {Fiat}-{Shamir} signatures.
+\newblock {\em {IACR} {TCHES}}, 2024(3):25--75, 2024.
+\newblock \href {https://doi.org/10.46586/tches.v2024.i3.25-75}
+  {\path{doi:10.46586/tches.v2024.i3.25-75}}.
+
+\bibitem[G{\"a}r24]{GartnerFull}
+Joel G{\"a}rtner.
+\newblock Compact lattice signatures via iterative rejection sampling.
+\newblock Cryptology ePrint Archive, Paper 2024/2052, 2024.
+\newblock Full version.
+\newblock URL: \url{https://eprint.iacr.org/2024/2052}.
+
+\bibitem[Gro97]{GroverSearch}
+Lov~K. Grover.
+\newblock Quantum mechanics helps in searching for a needle in a haystack.
+\newblock {\em Physical Review Letters}, 79:325--328, 1997.
+\newblock \href {https://doi.org/10.1103/PhysRevLett.79.325}
+  {\path{doi:10.1103/PhysRevLett.79.325}}.
+
+\bibitem[{Nat}a]{DLMF}
+{National Institute of Standards and Technology}.
+\newblock {Digital Library of Mathematical Functions}.
+\newblock Section 20.5, Infinite Products and Related Results.
+\newblock Equation 20.5.3.
+\newblock URL: \url{https://dlmf.nist.gov/20.5}.
+
+\bibitem[{Nat}b]{NISTCategories}
+{National Institute of Standards and Technology}.
+\newblock Post-quantum cryptography. security evaluation criteria.
+\newblock URL:
+  \url{https://csrc.nist.gov/Projects/Post-Quantum-Cryptography/Post-Quantum-Cryptography-Standardization/Evaluation-Criteria/Security-(Evaluation-Criteria)}.
+
+\bibitem[ZCC{\etalchar{+}}26]{cryptoeprint:2026/1790}
+Jipeng Zhang, Pengfei Chen, Long Chen, Cong Zhang, and Jiaheng Zhang.
+\newblock {Lithium}: Making iterative rejection sampling practical for compact
+  lattice signatures.
+\newblock Cryptology {ePrint} Archive, Paper 2026/1790, 2026.
+\newblock URL: \url{https://eprint.iacr.org/2026/1790}.
+
+\end{thebibliography}

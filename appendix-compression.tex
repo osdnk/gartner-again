@@ -1,0 +1,153 @@
+% !TEX root = main.tex
+\section{Bit-Dropping and Compressed Protocols}
+\label{app:compression}
+
+The protocols replace the last $m$ response ring elements by rounding hints. The reconstruction error is bounded coefficientwise in the worst case. We give both variants, including their full verification checks.
+
+\subsection{Two-Move Compression}
+\label{app:two-compression}
+
+\begin{definition}[Rounding and Hints]
+\label{def:rounding}
+Choose an integer $\tau\ge4$ divisible by $4$ and dividing $2(q-1)$. Write $x\bmod a$ for the representative in $\{0,\ldots,a-1\}$ and $x\bmod^{\pm}a$ for the representative in $[-a/2,a/2)$. Define coefficientwise
+\begin{align*}
+ \mathsf{HB}(x)&\coloneqq\tau\left\lfloor\frac{x\bmod2q}{\tau}+\frac12\right\rfloor\bmod2(q-1),\\
+ \mathsf{LB}(x)&\coloneqq x-\mathsf{HB}(x)\bmod^{\pm}2q,
+ &\mathsf{LSB}(x)&\coloneqq x\bmod2.
+\end{align*}
+Let $\mathcal G_\tau\coloneqq\{0,\tau,\ldots,2(q-1)-\tau\}$, and let $\mathcal H_\tau$ be the set of vectors of $m$ ring elements whose coefficients lie in $\mathcal G_\tau$. The compressed random oracle is $H_c\colon\mathcal H_\tau\times\ring_2^m\times\{0,1\}^*\to\mathcal C$. Fix an integer verification bound
+\begin{equation}
+\label{eq:verification-bound}
+ B_v\ge B_s+\sqrt{dm}\,(\tau/4+1).
+\end{equation}
+\end{definition}
+
+\begin{figure}[!htbp]
+\centering
+\procedure[linenumbering]{$\mathsf{CSign}(\mat A,\vec s,\mu)$}{
+ \textbf{repeat} \\
+ \quad\vec y\leftarrow D_{\ring^{\ell+m+1},r} \\
+ \quad\vec w\coloneqq\mat A\vec y\bmod2q \\
+ \quad\vec u\coloneqq\mathsf{LSB}(\vec w) \\
+ \quad c\coloneqq H_c(\mathsf{HB}(\vec w),\vec u,\mu) \\
+ \quad\vec z\leftarrow\mathsf{RejectSample}_{\vec s}(\vec y,c) \\
+ \textbf{until }\vec z\ne\bot\text{ and }\norm{\vec z}\le B_s \\
+ (\vec z_1,\vec z_2)\coloneqq\mathsf{Split}(\vec z) \\
+ \widetilde{\vec w}\coloneqq\vec w-2\vec z_2\bmod2q \\
+ \vec h\coloneqq\mathsf{HB}(\vec w)-\mathsf{HB}(\widetilde{\vec w})\bmod2(q-1) \\
+ \textbf{return }(\vec z_1,\vec h,c)
+}
+\par\medskip
+\procedure[linenumbering]{$\mathsf{CVerify}(\mat A,\mu,(\vec z_1,\vec h,c))$}{
+ \textbf{if }\vec z_1\notin\ring^{\ell+1}\text{ or }\vec h\notin\mathcal H_\tau\text{ or }c\notin\mathcal C \\
+ \quad\textbf{return }0 \\
+ \widetilde{\vec w}'\coloneqq\mat A_1\vec z_1-qc\vec j\bmod2q \\
+ \vec{w}_{h}'\coloneqq\mathsf{HB}(\widetilde{\vec w}')+\vec h\bmod2(q-1) \\
+ z_0\coloneqq\text{first ring element of }\vec z_1 \\
+ \vec u'\coloneqq\mathsf{LSB}(z_0-c)\vec j \\
+ \vec z_2'\coloneqq(\vec{w}_{h}'-\widetilde{\vec w}'+\vec u')/2\bmod^{\pm}q \\
+ \vec z'\coloneqq(\vec z_1^T,(\vec z_2')^T)^T \\
+ \textbf{if }\norm{\vec z'}>B_v \\
+ \quad\textbf{return }0 \\
+ \textbf{return }[H_c(\vec{w}_{h}',\vec u',\mu)=c]
+}
+\caption{Compressed signing and verification with the same key generation and sampler.}
+\label{fig:compressed}
+\end{figure}
+
+In~\cref{fig:compressed}, $\mathsf{Split}$ separates the first $\ell+1$ ring elements from the last $m$, and $\mat A_1$ is the corresponding block of $\mat A$. The division by $2$ is an integer division before reduction modulo $q$. It is always defined because $\widetilde{\vec w}'\bmod2=\vec u'$ and $\vec{w}_{h}'$ has even coefficients. The hint is represented canonically, not as an arbitrary congruent integer vector. These algorithms specify mathematical signatures. A byte encoding must additionally specify an injective encoding of $\vec z_1$, $\vec h/\tau$, and $c$, and reject malformed encodings. The entropy estimates below are not a specification of an entropy coder.
+
+\begin{lemma}[Compressed Correctness]
+\label{lem:compressed-correctness}
+Under~\cref{eq:verification-bound}, every signature returned by $\mathsf{CSign}$ in~\cref{fig:compressed} is accepted by $\mathsf{CVerify}$.
+\end{lemma}
+\begin{proof}
+By~\cref{lem:basic-correctness}, $\widetilde{\vec w}'=\vec w-2\vec z_2\bmod2q$, so the hint gives $\vec{w}_{h}'=\mathsf{HB}(\vec w)$. Also $\mat A\bmod2=[\vec j,0,\ldots,0]$ and $z_0-c=y_0\bmod2$, giving $\vec u'=\mathsf{LSB}(\vec w)$. Thus the hash inputs agree.
+
+Put $\vec l=\mathsf{LB}(\vec w)$ and $\vec u=\mathsf{LSB}(\vec w)$. Ordinary rounding gives coefficients in $[-\tau/2,\tau/2-1]$. When the rounded value wraps at $2(q-1)$, centring modulo $2q$ introduces an additional $-2$. Consequently every coefficient of $\vec l$ lies in $[-\tau/2-2,\tau/2-1]$. Since $\vec l\bmod2=\vec u$ and $4$ divides $\tau$, every coefficient of $(\vec u-\vec l)/2$ has magnitude at most $\tau/4+1$. Reconstruction gives
+\[
+ \vec z_2'=\vec z_2+(\vec u-\vec l)/2\bmod^{\pm}q.
+\]
+Centred reduction cannot increase the magnitude of an integer coefficient. The triangle inequality now gives $\norm{\vec z'}\le\norm{\vec z}+\sqrt{dm}(\tau/4+1)\le B_v$.
+\end{proof}
+
+\FloatBarrier
+\subsection{Four-Move Compression}
+\label{app:four-compression}
+
+The last $m$ ring elements can again be replaced by rounding hints. Using $\mat B$ makes their coefficient in the verification equation equal to one. This removes the parity correction needed when dividing by two in~\cref{fig:compressed}.
+
+\begin{definition}[Four-Move Rounding]
+\label{def:four-rounding}
+Choose an even integer $\Delta\ge2$ dividing $q-1$. Define coefficientwise
+\[
+ \mathsf{Q}_\Delta(x)\coloneqq
+ \Delta\left\lfloor\frac{x\bmod q}{\Delta}+\frac12\right\rfloor\bmod(q-1),
+ \qquad
+ \mathsf{L}_\Delta(x)\coloneqq x-\mathsf{Q}_\Delta(x)\bmod^{\pm}q.
+\]
+Let $\mathcal H_\Delta$ consist of vectors of $m$ ring elements whose coefficients belong to $\{0,\Delta,\ldots,q-1-\Delta\}$. Fix an integer bound
+\begin{equation}
+\label{eq:four-verification-bound}
+ B_v\ge B_s+\sqrt{dm}\,(\Delta/2+1).
+\end{equation}
+\end{definition}
+
+\cref{fig:four-compressed} gives the compressed protocol. Its signature is $(\vec z_1,\vec h,c)$, where $\vec z_1$ contains the first $\ell+1$ ring elements. The folded parity is reconstructed from $z_0$ and $c$, so it costs no additional signature bits. The hint is a canonical element of $\mathcal H_\Delta$.
+
+\begin{figure}[!htbp]
+\centering
+\procedure[linenumbering]{$\mathsf{CSign}_4(\mat B,\vec s,\mu)$}{
+ \textbf{repeat} \\
+ \quad\vec y\leftarrow D_{\ring^{\ell+m+1},r} \\
+ \quad\vec w\coloneqq\mat B\vec y\bmod q \\
+ \quad\vec u\coloneqq\mathsf{Fold}(y_0) \\
+ \quad c\coloneqq H_4(\mathsf{Q}_\Delta(\vec w),\vec u,\mu) \\
+ \quad\vec z\leftarrow\mathsf{Reject}_{4,\vec s}(\vec y,c) \\
+ \textbf{until }\vec z\ne\bot\text{ and }\norm{\vec z}\le B_s \\
+ (\vec z_1,\vec z_2)\coloneqq\mathsf{Split}(\vec z) \\
+ \widetilde{\vec w}\coloneqq\vec w-\vec z_2\bmod q \\
+ \vec h\coloneqq\mathsf{Q}_\Delta(\vec w)-\mathsf{Q}_\Delta(\widetilde{\vec w})\bmod(q-1) \\
+ \textbf{return }(\vec z_1,\vec h,c)
+}
+\par\medskip
+\procedure[linenumbering]{$\mathsf{CVerify}_4(\mat B,\mu,(\vec z_1,\vec h,c))$}{
+ \textbf{if }\vec z_1\notin\ring^{\ell+1}\text{ or }\vec h\notin\mathcal H_\Delta\text{ or }c\notin\mathcal C_4 \\
+ \quad\textbf{return }0 \\
+ \widetilde{\vec w}'\coloneqq\mat B_1\vec z_1\bmod q \\
+ \vec w_h'\coloneqq\mathsf{Q}_\Delta(\widetilde{\vec w}')+\vec h\bmod(q-1) \\
+ \vec z_2'\coloneqq\vec w_h'-\widetilde{\vec w}'\bmod^{\pm}q \\
+ \vec z'\coloneqq(\vec z_1^T,(\vec z_2')^T)^T \\
+ \textbf{if }\norm{\vec z'}>B_v \\
+ \quad\textbf{return }0 \\
+ z_0\coloneqq\text{first ring element of }\vec z_1 \\
+ \vec u'\coloneqq\mathsf{Fold}(z_0)-c\bmod2 \\
+ \textbf{return }[H_4(\vec w_h',\vec u',\mu)=c]
+}
+\caption{Compressed signing and verification for four moves.}
+\label{fig:four-compressed}
+\end{figure}
+
+\begin{lemma}[Compressed Four-Move Correctness]
+\label{lem:four-compressed}
+Under~\cref{eq:four-verification-bound}, every signature returned by $\mathsf{CSign}_4$ is accepted by $\mathsf{CVerify}_4$. Its reconstructed response satisfies
+\[
+ \mat B\vec z'=\vec w_h'\pmod q,\qquad
+ \norm{\vec z'}\le B_v.
+\]
+\end{lemma}
+\begin{proof}
+The key equation gives $\widetilde{\vec w}'=\vec w-\vec z_2\pmod q$, so the hint recovers $\vec w_h'=\mathsf{Q}_\Delta(\vec w)$. As in~\cref{lem:unit-correctness}, the folded parity is recovered exactly. Thus both hash inputs agree.
+
+For a scalar residue, ordinary rounding has error in $[-\Delta/2,\Delta/2-1]$. A wrap at $q-1$ gives a congruent error smaller by one modulo $q$. Thus every coefficient of $\vec l=\mathsf{L}_\Delta(\vec w)$ is the centred reduction of an integer in $[-\Delta/2-1,\Delta/2-1]$, and has magnitude at most $\Delta/2+1$. Reconstruction gives
+\[
+ \vec z_2'=\vec z_2-\vec l\bmod^{\pm}q.
+\]
+Centred reduction cannot increase coefficient magnitude. Consequently
+\[
+ \norm{\vec z'}\le\norm{\vec z}+\sqrt{dm}\,(\Delta/2+1)\le B_v.
+\]
+Finally, $\mat B=[\mat B_1,\mat I_m]$ gives the claimed reconstructed commitment equation directly.
+\end{proof}
+
+\FloatBarrier

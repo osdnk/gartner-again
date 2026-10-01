@@ -1,0 +1,69 @@
+% !TEX root = main.tex
+\section{Introduction}
+\label{sec:intro}
+
+Compact lattice signatures require short responses whose distribution hides the signing key. In Gaussian constructions, the response width affects both the encoded signature size and the probability that signing must restart. A wider Gaussian makes secret-dependent shifts easier to hide, but increases the signature length. Improving the acceptance rule at a fixed width can therefore reduce the number of sampling attempts or permit a narrower response at the same repetition rate.
+
+Iterative rejection sampling~\cite{GartnerFull} constructs a response through a sequence of short signed shifts. Instead of correcting for the entire challenge-dependent shift at once, the signer processes one nonzero challenge coefficient at a time. Each step adds or subtracts a short vector, or rejects. Its acceptance probabilities are chosen so that an input Gaussian becomes the same Gaussian conditional on acceptance. The per-step repetition factors multiply over the challenge weight, making the choice of these probabilities relevant even when an individual step rarely rejects.
+
+Lithium~\cite{cryptoeprint:2026/1790} studies the practical implementation of this approach through joint choices of parameters, Gaussian sampling, exponential evaluation, rejection sampling, and entropy coding. Its reported Lithium-120 implementation produces $1187$-byte signatures and signs in $166\,000$ cycles, compared with $2420$ bytes and $191\,000$ cycles for its ML-DSA-44 baseline. These results motivate studying the acceptance rule itself. Our question concerns the smallest rejection probability compatible with the prescribed Gaussian and allowed moves, rather than the implementation cost of evaluating a particular rule.
+
+The framework of~\cite{GartnerFull} states three conditions on the two move probabilities and supplies functions satisfying them. Those conditions leave room to change the functions without changing the protocol. We determine the optimum within this framework. We also study four moves in two orthogonal directions, where a different parity constraint permits a smaller repetition factor.
+
+\subsection{Contributions}
+
+We give two results.
+\begin{enumerate}
+\item We construct acceptance functions by balancing the even and odd Gaussian masses along each shift direction. The construction weights the even terms of an alternating sum by the ratio of the two total masses. It gives one expression for each move probability, valid at every input, and fits directly into the three conditions of~\cite{GartnerFull}. For four moves, the same directional sums share one additional denominator. A norm-preserving ring rotation supplies the second orthogonal direction for every secret vector.
+\item We prove that these functions minimise rejection for two moves, and for four moves in two equal-length orthogonal directions, at every positive Gaussian width. Each allowed move exchanges two parity classes. Their unequal masses impose a lower bound on rejection, which the functions attain. For four moves, the two one-dimensional mass imbalances multiply. We also identify the offsets that determine the common repetition factor on the discrete lattice.
+\end{enumerate}
+
+The two-move replacement preserves the keys, challenges, and verification equations of~\cite{GartnerFull}. At its three rejecting parameter sets, matching the original sampler repetition factors reduces the entropy-based signature estimates from $775$, $1184$, and $1694$ bytes to $764$, $1167$, and $1674$ bytes. Keeping the original widths instead reduces the expected sampler attempts by $27.5\%$, $41.4\%$, and $39.7\%$. These comparisons retain the original reduced challenge weights.
+
+Four moves require a changed verification relation that retains half as many challenge bits as the ring degree. On three explicit parameter sets for this relation, we compare the rule of~\cite{GartnerFull}, optimal two moves, and optimal four moves, keeping the keys and challenge distribution fixed within each set. At two expected sampler attempts, four moves reduce the signature estimates from $1892$, $2557$, and $2991$ bytes to $1730$, $2362$, and $2732$ bytes, saving $8.56\%$, $7.63\%$, and $8.66\%$. The comparison is between acceptance rules on these parameters, not between the four-move scheme and the original degree-$256$ instantiations.
+
+We give complete basic and compressed protocols with conditional unforgeability theorems in the classical random-oracle model. The four-move theorem uses a folded self-target assumption, whose relation is stated explicitly. Signature sizes are entropy estimates, and the reported repetition counts concern the iterative sampler before norm and encoding rejection. The parameter and impact tables appear in~\cref{sec:results}. Bit-dropping, full security proofs, and supporting parameter calculations are given in the appendices.
+
+\subsection{Technical Overview}
+
+\subsubsection{Mass Preservation and the Parity Bound}
+
+Fix a lattice $L$, a Gaussian width $r>0$, and a nonzero shift $\vec v\in L$. Write $\rho_r(\vec y)=\exp(-\norm{\vec y}^2/(2r^2))$ for the unnormalised Gaussian mass, as formalised in~\cref{def:gaussian}. A step returns $\vec y-\vec v$ with probability $f_{\vec v}(\vec y)$ and $\vec y+\vec v$ with probability $g_{\vec v}(\vec y)$. To preserve the Gaussian with overall acceptance probability $1/M$, its incoming masses must satisfy
+\[
+ \rho_r(\vec y+\vec v)f_{\vec v}(\vec y+\vec v)
+ +\rho_r(\vec y-\vec v)g_{\vec v}(\vec y-\vec v)
+ =\rho_r(\vec y)/M.
+\]
+Together with nonnegative probabilities summing to at most one, this is the complete framework of~\cref{def:admissible}. The probability of accepting a particular input may vary with that input.
+
+Every step remains on the line $\vec y+\Z\vec v$ and exchanges its even and odd indexed points. Let $E$ and $O$ be their respective total Gaussian masses, as in~\cref{def:parity}. Producing accepted even mass $E/M$ requires mass from odd inputs, whose total is only $O$. Thus $E/M\le O$. Exchanging the classes gives $O/M\le E$, so every admissible rule requires $M\ge\max\{E/O,O/E\}$. This lower bound depends only on the permitted moves, not on the form of the acceptance functions.
+
+\subsubsection{Attaining the Bound}
+
+The alternating sums used in~\cite{GartnerFull} suggest constructing probabilities from differences of neighbouring Gaussian masses. We first balance their totals. At an input $\vec y$, multiply every even term by $b_{\vec v}(\vec y)=O/E$, then subtract the adjacent odd term. The resulting differences sum to zero over the whole line. Their signs change once, from negative to positive, because the ratio of adjacent Gaussian masses is monotone. Every tail sum is consequently nonnegative. A tail starting after the sign change contains only nonnegative terms, while an earlier tail equals the negative of a nonpositive prefix.
+
+The two directional tails, divided by $\rho_r(\vec y)M$, define $f_{\vec v}(\vec y)$ and $g_{\vec v}(\vec y)$ in~\cref{eq:sum,eq:functions}. Their sum is $b_{\vec v}(\vec y)/M$. The incoming tails cancel except for the required mass $\rho_r(\vec y)/M$. Hence the same class ratio both determines the probability budget and attains its lower bound. The largest imbalance occurs on the line through the origin. With $\alpha=r/\norm{\vec v}$, the exact common factor is
+\[
+ M^*(\alpha)=
+ \frac{\sum_{j\in\Z}\exp(-(2j)^2/(2\alpha^2))}
+ {\sum_{j\in\Z}\exp(-(2j+1)^2/(2\alpha^2))}.
+\]
+The origin belongs to the lattice, so it supplies an exact lower bound without a continuous approximation. The construction and optimality proof are given in~\cref{sec:construction}.
+
+\subsubsection{A Second Orthogonal Direction}
+
+With two orthogonal shifts of equal length, the Gaussian masses factor across the two integer coordinates. Every move exchanges points of even and odd total coordinate parity. The difference between these two class masses is the product of the one-dimensional differences. If $\delta_0=(M^*-1)/(M^*+1)$ is the largest normalised one-dimensional imbalance, the optimal two-move rejection is $2\delta_0/(1+\delta_0)$, whereas the four-move rejection is $2\delta_0^2/(1+\delta_0^2)$.
+
+Simply selecting one of the two optimal directional samplers would retain the two-move repetition factor. Instead, divide both directional numerators by the same factor $1+b_1b_2$, where $b_i$ is the parity ratio in direction $i$. Moving in one direction inverts its ratio and leaves the other unchanged. This identity makes the incoming contributions add to the target Gaussian mass, while their total outgoing probability attains the two-dimensional parity bound. The resulting factor is
+\[
+ M_4^*(\alpha)=\frac12\left(M^*(\alpha)+\frac1{M^*(\alpha)}\right).
+\]
+The explicit probabilities and matching lower bound are given in~\cref{thm:four-optimal}.
+
+\subsubsection{From Acceptance to Signature Size}
+
+In the signature scheme, a binary challenge of Hamming weight $k$ requests $k$ short shifts derived from the secret vector $\vec s$. The public challenge is not centred. The sampler chooses a signed lift, and its mass-preservation identity gives the accepted Gaussian response exactly in the honest-verifier protocol. Thus neither a heuristic $\sqrt{k}$ expansion nor the worst-case bound $k\norm{\vec s}$ determines the response width. The worst-case challenge weight $\kappa$ determines the repetition exponent. A final retention test makes acceptance equal to $M^{-\kappa}$ for every permitted challenge, including variable-weight challenges.
+
+For four moves in $\ring\cong\Z[X]/\langle X^d+1\rangle$, multiplication by $\omega=X^{d/2}$ rotates every coefficient vector to an orthogonal vector of the same norm. All four units $\{1,-1,\omega,-\omega\}$ become one modulo $\omega-1$. Verification therefore recovers the challenge through the parity map that adds the two halves of a ring element. This quotient has $d/2$ bits. Folding changes the commitment parity, not the dimension or norm of the response. The resulting loss of challenge capacity is included in the parameter choices, and the changed self-target relation remains explicit in~\cref{thm:unit-security}.
+
+At fixed expected sampler attempts, a smaller optimal factor permits a smaller Gaussian width. Under the entropy model of~\cite{GartnerFull}, reducing the width from $r_{\mathsf{old}}$ to $r_{\mathsf{new}}$ saves $N\log_2(r_{\mathsf{old}}/r_{\mathsf{new}})$ bits before byte rounding, where $N$ is the full response dimension. The protocols impose a hard response-norm cutoff, and bit-dropping adds a worst-case reconstruction error. These bounds and the precise challenge distributions are retained in the size comparisons.
